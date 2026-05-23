@@ -428,17 +428,17 @@ const App = (function() {
     const total = p.correct + p.wrong;
     if (total === 0) return null;
 
-    // Primary: SRS-based (reflects RECENT performance)
-    // streak ≥ 3 AND interval ≥ 6 days = truly mastered (consistent correct answers)
-    // streak ≥ 2 OR interval ≥ 3 = progressing well
-    // streak 0 = just got it wrong recently
+    // Strict mastery system:
+    // - "Dikuasai": streak ≥ 4 AND total ≥ 6 AND interval ≥ 12
+    //   (Benar 4x berturut-turut, sudah latihan minimal 6x, interval review 12+ hari)
+    // - "Sedang": (streak ≥ 2 AND total ≥ 3) OR (akurasi ≥ 75% AND total ≥ 5)
+    //   (Mulai konsisten tapi belum terbukti jangka panjang)
+    // - "Lemah": sisanya (sudah latihan tapi belum konsisten)
 
-    if (p.streak >= 3 && p.interval >= 6) return 'kuasai';
-    if (p.streak >= 2 || p.interval >= 3) return 'sedang';
-
-    // Secondary: if streak is low, check lifetime accuracy as fallback
     const acc = Math.round(p.correct / total * 100);
-    if (acc >= 80 && total >= 3) return 'sedang'; // high accuracy but lost streak
+
+    if (p.streak >= 4 && total >= 6 && p.interval >= 12) return 'kuasai';
+    if ((p.streak >= 2 && total >= 3) || (acc >= 75 && total >= 5)) return 'sedang';
     
     return 'lemah';
   }
