@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>漢字 Kanji Flashcard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="app-subtitle">Kanji<br>Flashcard &amp; Quiz</div>
+  </header>
+
+  <!-- ── TAB NAVIGATION ── -->
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="flashcard">Flashcard</button>
+    <button class="tab-btn" data-tab="quiz">Kuis</button>
+    <button class="tab-btn" data-tab="list">Daftar</button>
+    <button class="tab-btn" data-tab="progress">Progress</button>
+  </nav>
+
+  <div class="main">
+
+
+    <!-- ===== FLASHCARD SECTION ===== -->
+    <section id="flashcard" class="section active">
+      <div class="fc-controls">
+        <div class="fc-counter">Kartu <span id="fc-current">1</span> / <span id="fc-total">324</span></div>
+        <div class="btn-group">
+          <button class="btn" id="btn-shuffle">&#8644; Acak</button>
+          <button class="btn" id="btn-reset">&#8617; Reset</button>
+        </div>
+      </div>
+
+      <div class="card-wrapper">
+        <div class="card-scene" id="card-scene">
+          <div class="card-inner" id="card-inner">
+            <div class="card-face">
+              <div class="card-number" id="card-num-front"></div>
+              <div class="kanji-display" id="kanji-front"></div>
+              <div class="card-hint">&#8597; Klik untuk lihat arti</div>
+            </div>
+            <div class="card-face card-back">
+              <div class="kanji-back-char" id="kanji-back-char"></div>
+              <div class="kanji-meaning" id="kanji-back-meaning"></div>
+              <div class="kanji-meaning-id" id="kanji-back-id"></div>
+              <div class="reading-block">
+                <div class="reading-group">
+                  <span class="reading-label">音読み On'yomi</span>
+                  <span class="reading-value onyomi" id="kanji-back-on"></span>
+                </div>
+                <div class="reading-group">
+                  <span class="reading-label">訓読み Kun'yomi</span>
+                  <span class="reading-value kunyomi" id="kanji-back-kun"></span>
+                </div>
+              </div>
+              <div class="example-block" id="kanji-back-ex"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-nav">
+          <button class="nav-btn" id="prev-btn">&#9664;</button>
+          <button class="btn primary flip-width" id="btn-flip">Balik Kartu</button>
+          <button class="nav-btn" id="next-btn">&#9654;</button>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <button class="mini-grid-toggle" id="mini-grid-btn">&#9766; Tampilkan Navigator Kanji</button>
+      </div>
+      <div class="mini-grid-wrap" id="mini-grid-wrap">
+        <div class="kanji-grid-title">&mdash; Klik kanji untuk loncat ke kartu tersebut &mdash;</div>
+        <div class="kanji-grid" id="kanji-grid"></div>
+      </div>
+    </section>
+
+
+    <!-- ===== QUIZ SECTION ===== -->
+    <section id="quiz" class="section">
+
+      <!-- QUIZ SETUP -->
+      <div id="quiz-setup">
+        <div class="quiz-setup-card">
+          <h2>&#9999;&#65039; Uji Kemampuanmu</h2>
+          <p>Pilih mode dan kanji yang ingin diuji, lalu mulai!</p>
+
+          <div class="section-label">MODE KUIS</div>
+          <div class="mode-cards">
+            <div class="mode-card selected" data-mode="kanji-to-reading">
+              <div class="mode-card-inner">
+                <span class="mode-icon">漢→<span class="color-on">音</span><span class="color-kun">訓</span></span>
+                <div>
+                  <span class="mode-name">Kanji → On + Kun</span>
+                  <span class="mode-desc">Lihat kanji → pilih pasangan on+kun yang tepat.<br>Contoh: 牛 → <strong class="color-on">ギュウ</strong> · <strong class="color-kun">うし</strong></span>
+                </div>
+              </div>
+            </div>
+            <div class="mode-card" data-mode="reading-to-kanji">
+              <div class="mode-card-inner">
+                <span class="mode-icon"><span class="color-on">音</span><span class="color-kun">訓</span>→漢</span>
+                <div>
+                  <span class="mode-name">On + Kun → Kanji</span>
+                  <span class="mode-desc">Lihat on+kun → pilih kanji yang tepat.<br>Contoh: <strong class="color-on">ギュウ</strong> · <strong class="color-kun">うし</strong> → <strong>牛</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kanji-selector-header">
+          <span class="kanji-selector-title">
+            PILIH KANJI YANG DIUJI
+            <span class="sel-count" id="sel-count-label">0 dipilih</span>
+          </span>
+          <div class="btn-group">
+            <button class="small-btn" id="btn-select-all">Pilih Semua</button>
+            <button class="small-btn" id="btn-clear-all">Hapus Semua</button>
+          </div>
+        </div>
+
+        <!-- Filter by progress -->
+        <div class="filter-section">
+          <div class="filter-section-label">FILTER BERDASARKAN PROGRESS</div>
+          <div class="filter-row">
+            <button class="qfilter-btn active-qfilter" id="qf-all" data-filter="all">Semua</button>
+            <button class="qfilter-btn" id="qf-belum" data-filter="belum">○ Belum Dilatih</button>
+            <button class="qfilter-btn" id="qf-lemah" data-filter="lemah">● Lemah (&lt;70%)</button>
+            <button class="qfilter-btn" id="qf-sedang" data-filter="sedang">● Sedang (40–70%)</button>
+            <button class="qfilter-btn" id="qf-kuasai" data-filter="kuasai">● Dikuasai (≥70%)</button>
+          </div>
+        </div>
+
+        <!-- Group selection -->
+        <div class="filter-section">
+          <div class="filter-section-label">PILIH CEPAT PER KELOMPOK</div>
+          <div class="group-btns" id="group-btns"></div>
+        </div>
+
+        <!-- Kanji selector grid -->
+        <div class="kanji-selector" id="kanji-selector"></div>
+
+        <!-- SRS toggle -->
+        <div class="srs-toggle-row">
+          <input type="checkbox" id="srs-toggle" checked>
+          <label for="srs-toggle">&#8634; <strong>SRS aktif</strong> &mdash; kanji yang salah muncul lagi di akhir</label>
+        </div>
+
+        <!-- SRS Review Banner -->
+        <div class="srs-banner" id="srs-due-banner">
+          <div class="srs-banner-inner">
+            <div>
+              <div class="srs-banner-title">&#9670; SRS REVIEW TERSEDIA</div>
+              <div class="srs-banner-count" id="srs-due-count"></div>
+            </div>
+            <button class="btn primary" id="btn-start-srs">&#8634; Mulai Review</button>
+          </div>
+        </div>
+
+        <button class="btn primary full-width" id="btn-start-quiz">始め！ Mulai Kuis</button>
+      </div>
+
+
+      <!-- QUIZ ACTIVE -->
+      <div id="quiz-active">
+        <div class="quiz-topbar">
+          <div class="quiz-stat-row">
+            <span class="stat-pill correct-pill" id="pill-correct">&#10003; 0</span>
+            <span class="stat-pill wrong-pill" id="pill-wrong">&#10007; 0</span>
+            <span class="stat-pill srs-pill" id="pill-srs" style="display:none;">&#8634; 0</span>
+          </div>
+          <button class="btn quit" id="btn-end-quiz">&#10005; Keluar Kuis</button>
+        </div>
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-progress"></div></div>
+        <div class="quiz-q-num" id="quiz-q-num"></div>
+
+        <div class="quiz-question-card"><div class="quiz-question" id="quiz-question"></div></div>
+        <div id="answer-area"></div>
+
+        <div class="feedback-panel" id="feedback-panel">
+          <div class="feedback-header" id="feedback-header"></div>
+          <div class="feedback-body">
+            <div class="fb-kanji" id="fb-kanji"></div>
+            <div class="fb-info" id="fb-info"></div>
+          </div>
+        </div>
+
+        <div class="next-q-wrap" id="next-q-btn">
+          <button class="btn gold" id="btn-next-q">次へ Lanjut →</button>
+        </div>
+      </div>
+
+      <!-- QUIZ RESULTS -->
+      <div id="quiz-result">
+        <div class="quiz-result">
+          <div class="result-title">結果 Hasil Kuis</div>
+          <div class="result-rings">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle class="ring-bg" cx="70" cy="70" r="60"/>
+              <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="60"
+                stroke-dasharray="377" stroke-dashoffset="377"/>
+            </svg>
+            <div class="ring-pct" id="ring-pct">0%</div>
+          </div>
+          <div class="result-grade" id="result-grade"></div>
+          <div class="result-stats">
+            <div class="result-stat rs-green"><span class="rs-num" id="rs-correct">0</span><span class="rs-label">Benar</span></div>
+            <div class="result-stat rs-red"><span class="rs-num" id="rs-wrong">0</span><span class="rs-label">Salah</span></div>
+            <div class="result-stat"><span class="rs-num" id="rs-total">0</span><span class="rs-label">Soal</span></div>
+          </div>
+          <div class="wrong-list" id="wrong-list"></div>
+          <div class="btn-group" style="justify-content:center;gap:12px;">
+            <button class="btn primary" id="btn-retry">&#8634; Ulangi</button>
+            <button class="btn" id="btn-back-setup">&#8592; Setup</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ===== LIST SECTION ===== -->
+    <section id="list" class="section">
+      <div class="list-header">
+        <div class="list-filter-row">
+          <span class="list-filter-label">FILTER:</span>
+          <button class="filter-btn active-filter" id="filter-all" data-filter="all">Semua (324)</button>
+          <button class="filter-btn" id="filter-belum" data-filter="belum">Belum Dilatih</button>
+          <button class="filter-btn" id="filter-lemah" data-filter="lemah">Lemah (&lt;70%)</button>
+          <button class="filter-btn" id="filter-kuasai" data-filter="kuasai">Dikuasai (≥70%)</button>
+        </div>
+      </div>
+      <div class="list-grid" id="list-grid"></div>
+    </section>
+
+    <!-- ===== PROGRESS SECTION ===== -->
+    <section id="progress" class="section">
+      <div class="progress-wrapper">
+        <h2>&#128202; Progress Belajar</h2>
+        <p>Rekap hasil kuis kamu untuk setiap kanji</p>
+        <div id="storage-status"></div>
+        <div class="prog-summary" id="prog-summary"></div>
+        <div id="prog-table"></div>
+        <button class="btn-reset" id="btn-reset-progress">&#10005; Reset Progress</button>
+      </div>
+    </section>
+
+  </div><!-- /.main -->
+
+  <!-- Scripts: data first, then app logic -->
+  <script src="kanji-data.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
