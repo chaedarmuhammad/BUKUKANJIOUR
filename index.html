@@ -86,7 +86,29 @@
       <div id="tfc-setup">
         <div class="quiz-setup-card">
           <h2>&#128196; Tes Flashcard</h2>
-          <p>Pilih kanji, lalu semua contoh kata (on_ex &amp; kun_ex) akan menjadi kartu flashcard untuk diuji.</p>
+          <p>Pilih mode, kanji, lalu semua contoh kata (on_ex &amp; kun_ex) akan menjadi kartu flashcard untuk diuji.</p>
+
+          <div class="section-label">MODE TES</div>
+          <div class="mode-cards">
+            <div class="mode-card selected" id="tfc-mode-word" data-tfc-mode="word-to-reading">
+              <div class="mode-card-inner">
+                <span class="mode-icon">漢→<span class="color-on">読</span></span>
+                <div>
+                  <span class="mode-name">Kata → Bacaan &amp; Arti</span>
+                  <span class="mode-desc">Lihat kanji/kata → tebak bacaan dan artinya.<br>Contoh: 山脈 → <strong class="color-on">さんみゃく</strong> · pegunungan</span>
+                </div>
+              </div>
+            </div>
+            <div class="mode-card" id="tfc-mode-reading" data-tfc-mode="reading-to-word">
+              <div class="mode-card-inner">
+                <span class="mode-icon"><span class="color-on">読</span>→漢</span>
+                <div>
+                  <span class="mode-name">Bacaan &amp; Arti → Kata</span>
+                  <span class="mode-desc">Lihat bacaan dan arti → tebak kanji/kata-nya.<br>Contoh: さんみゃく · pegunungan → <strong>山脈</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Kanji selector header -->
@@ -98,6 +120,18 @@
           <div class="btn-group">
             <button class="small-btn" id="tfc-select-all">Pilih Semua</button>
             <button class="small-btn" id="tfc-clear-all">Hapus Semua</button>
+          </div>
+        </div>
+
+        <!-- Filter by progress -->
+        <div class="filter-section">
+          <div class="filter-section-label">FILTER BERDASARKAN PROGRESS</div>
+          <div class="filter-row">
+            <button class="qfilter-btn active-qfilter" id="tfc-qf-all" data-tfc-filter="all">Semua</button>
+            <button class="qfilter-btn" id="tfc-qf-belum" data-tfc-filter="belum">○ Belum Dilatih</button>
+            <button class="qfilter-btn" id="tfc-qf-lemah" data-tfc-filter="lemah">● Lemah</button>
+            <button class="qfilter-btn" id="tfc-qf-sedang" data-tfc-filter="sedang">● Sedang</button>
+            <button class="qfilter-btn" id="tfc-qf-kuasai" data-tfc-filter="kuasai">● Dikuasai</button>
           </div>
         </div>
 
