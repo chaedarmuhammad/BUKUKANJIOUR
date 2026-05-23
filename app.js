@@ -1033,6 +1033,8 @@ const App = (function() {
   let tfcShuffled = false;
   let tfcResults = {};      // { idx: 'hafal' | 'belum' | null }
   let tfcMode = 'word-to-reading'; // 'word-to-reading' or 'reading-to-word'
+  let tfcSrsEnabled = true; // SRS: kartu belum hafal muncul lagi di akhir
+  let tfcSrsQueue = [];     // Cards to repeat at the end
 
   /**
    * Parse example string into individual word entries.
@@ -1258,6 +1260,11 @@ const App = (function() {
     tfcFlipped = false;
     tfcShuffled = false;
     tfcResults = {};
+    tfcSrsQueue = [];
+
+    // Read SRS toggle
+    const srsToggle = $('tfc-srs-toggle');
+    tfcSrsEnabled = srsToggle ? srsToggle.checked : true;
 
     // Reset shuffle toggle
     const shuffleToggle = $('tfc-shuffle-toggle');
@@ -1267,6 +1274,7 @@ const App = (function() {
 
     tfcShowView('active');
     tfcUpdateCard();
+    tfcUpdateSrsPill();
   }
 
   /** Show specific view in Tes Flashcard: setup | active | result */
@@ -1386,8 +1394,13 @@ const App = (function() {
     // Check if all cards are marked
     const allMarked = Object.keys(tfcResults).length >= tfcCards.length;
     if (allMarked) {
-      // All done! Show result after short delay
-      tfcShowFinish();
+      // If SRS queue has cards, append them and continue
+      if (tfcSrsEnabled && tfcSrsQueue.length > 0) {
+        tfcAppendSrsCards();
+      } else {
+        // All done! Show result after short delay
+        tfcShowFinish();
+      }
     } else if (tfcIndex < tfcCards.length - 1) {
       // Auto-advance to next card
       setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
@@ -1405,13 +1418,25 @@ const App = (function() {
     if (card && card.parentN) {
       recordProgress(card.parentN, false);
     }
+
+    // SRS: add card to repeat queue if enabled
+    if (tfcSrsEnabled && card) {
+      tfcSrsQueue.push(card);
+      tfcUpdateSrsPill();
+    }
+
     tfcUpdateCard();
 
     // Check if all cards are marked
     const allMarked = Object.keys(tfcResults).length >= tfcCards.length;
     if (allMarked) {
-      // All done! Show result after short delay
-      tfcShowFinish();
+      // If SRS queue has cards, append them and continue
+      if (tfcSrsEnabled && tfcSrsQueue.length > 0) {
+        tfcAppendSrsCards();
+      } else {
+        // All done! Show result after short delay
+        tfcShowFinish();
+      }
     } else if (tfcIndex < tfcCards.length - 1) {
       // Auto-advance to next card
       setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
@@ -1427,6 +1452,36 @@ const App = (function() {
     if (finishBtn) finishBtn.style.display = 'block';
     // Auto-navigate to result after short delay
     setTimeout(() => tfcShowResult(), 800);
+  }
+
+  /** Append SRS (belum hafal) cards to the end for repeat */
+  function tfcAppendSrsCards() {
+    // Add SRS cards to the main card array
+    const srsCards = [...tfcSrsQueue];
+    tfcSrsQueue = []; // Clear queue
+    
+    for (const card of srsCards) {
+      tfcCards.push(card);
+      // No result set for new cards — they need to be marked again
+    }
+    
+    tfcUpdateSrsPill();
+    
+    // Auto-advance to next (first SRS) card
+    setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
+  }
+
+  /** Update SRS pill display */
+  function tfcUpdateSrsPill() {
+    const pill = $('tfc-pill-srs');
+    if (pill) {
+      if (tfcSrsEnabled && tfcSrsQueue.length > 0) {
+        pill.style.display = 'inline-block';
+        pill.textContent = '\u21BA ' + tfcSrsQueue.length;
+      } else {
+        pill.style.display = 'none';
+      }
+    }
   }
 
   /** Check if all cards have been marked, show finish button if ready */
@@ -1581,11 +1636,13 @@ const App = (function() {
     tfcIndex = 0;
     tfcFlipped = false;
     tfcResults = {};
+    tfcSrsQueue = [];
     if (!tfcShuffled) {
       tfcCards = [...tfcOriginalOrder];
     }
     tfcShowView('active');
     tfcUpdateCard();
+    tfcUpdateSrsPill();
   }
 
   /** Bind Tes Flashcard events */

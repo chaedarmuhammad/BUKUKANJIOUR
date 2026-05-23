@@ -143,6 +143,12 @@
         <!-- Kanji selector grid -->
         <div class="kanji-selector" id="tfc-kanji-selector"></div>
 
+        <!-- SRS toggle -->
+        <div class="srs-toggle-row">
+          <input type="checkbox" id="tfc-srs-toggle" checked>
+          <label for="tfc-srs-toggle">&#8634; <strong>SRS aktif</strong> &mdash; kartu yang belum hafal muncul lagi di akhir</label>
+        </div>
+
         <button class="btn primary full-width" id="tfc-start-btn">&#127183; Mulai Tes Flashcard</button>
       </div>
 
@@ -152,6 +158,7 @@
           <div class="tfc-stats-row">
             <span class="stat-pill correct-pill" id="tfc-pill-hafal">&#10003; 0 Hafal</span>
             <span class="stat-pill wrong-pill" id="tfc-pill-belum">&#10007; 0 Belum</span>
+            <span class="stat-pill srs-pill" id="tfc-pill-srs" style="display:none;">&#8634; 0</span>
           </div>
           <button class="btn quit" id="tfc-quit-btn">&#10005; Keluar</button>
         </div>
