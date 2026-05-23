@@ -16,6 +16,7 @@
   <!-- ── TAB NAVIGATION ── -->
   <nav class="tabs">
     <button class="tab-btn active" data-tab="flashcard">Flashcard</button>
+    <button class="tab-btn" data-tab="test-fc">Tes FC</button>
     <button class="tab-btn" data-tab="quiz">Kuis</button>
     <button class="tab-btn" data-tab="list">Daftar</button>
     <button class="tab-btn" data-tab="progress">Progress</button>
@@ -75,6 +76,120 @@
         <div class="kanji-grid-title">&mdash; Klik kanji untuk loncat ke kartu tersebut &mdash;</div>
         <div class="kanji-grid" id="kanji-grid"></div>
       </div>
+    </section>
+
+
+    <!-- ===== TES FLASHCARD SECTION ===== -->
+    <section id="test-fc" class="section">
+
+      <!-- SETUP -->
+      <div id="tfc-setup">
+        <div class="quiz-setup-card">
+          <h2>&#128196; Tes Flashcard</h2>
+          <p>Pilih kanji, lalu semua contoh kata (on_ex &amp; kun_ex) akan menjadi kartu flashcard untuk diuji.</p>
+        </div>
+
+        <!-- Kanji selector header -->
+        <div class="kanji-selector-header">
+          <span class="kanji-selector-title">
+            PILIH KANJI YANG DIUJI
+            <span class="sel-count" id="tfc-sel-count">0 dipilih</span>
+          </span>
+          <div class="btn-group">
+            <button class="small-btn" id="tfc-select-all">Pilih Semua</button>
+            <button class="small-btn" id="tfc-clear-all">Hapus Semua</button>
+          </div>
+        </div>
+
+        <!-- Group selection -->
+        <div class="filter-section">
+          <div class="filter-section-label">PILIH CEPAT PER KELOMPOK</div>
+          <div class="group-btns" id="tfc-group-btns"></div>
+        </div>
+
+        <!-- Kanji selector grid -->
+        <div class="kanji-selector" id="tfc-kanji-selector"></div>
+
+        <button class="btn primary full-width" id="tfc-start-btn">&#127183; Mulai Tes Flashcard</button>
+      </div>
+
+      <!-- ACTIVE TEST -->
+      <div id="tfc-active" style="display:none;">
+        <div class="tfc-topbar">
+          <div class="tfc-stats-row">
+            <span class="stat-pill correct-pill" id="tfc-pill-hafal">&#10003; 0 Hafal</span>
+            <span class="stat-pill wrong-pill" id="tfc-pill-belum">&#10007; 0 Belum</span>
+          </div>
+          <button class="btn quit" id="tfc-quit-btn">&#10005; Keluar</button>
+        </div>
+
+        <div class="tfc-controls-row">
+          <div class="tfc-counter">Kartu <span id="tfc-current">1</span> / <span id="tfc-total">0</span></div>
+          <div class="tfc-shuffle-toggle">
+            <label class="toggle-switch">
+              <input type="checkbox" id="tfc-shuffle-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" id="tfc-shuffle-label">Acak: OFF</span>
+          </div>
+        </div>
+
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="tfc-progress"></div></div>
+
+        <!-- Flashcard -->
+        <div class="tfc-card-wrapper">
+          <div class="tfc-card" id="tfc-card">
+            <div class="tfc-card-front" id="tfc-card-front">
+              <div class="tfc-card-source" id="tfc-card-source"></div>
+              <div class="tfc-card-word" id="tfc-card-word"></div>
+              <div class="tfc-card-hint">&#8597; Klik untuk lihat jawaban</div>
+            </div>
+            <div class="tfc-card-back" id="tfc-card-back" style="display:none;">
+              <div class="tfc-card-word-back" id="tfc-back-word"></div>
+              <div class="tfc-back-reading" id="tfc-back-reading"></div>
+              <div class="tfc-back-meaning" id="tfc-back-meaning"></div>
+              <div class="tfc-back-parent" id="tfc-back-parent"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation & Actions -->
+        <div class="tfc-actions">
+          <button class="btn tfc-btn-belum" id="tfc-btn-belum">&#10007; Belum Hafal</button>
+          <button class="btn tfc-btn-hafal" id="tfc-btn-hafal">&#10003; Sudah Hafal</button>
+        </div>
+        <div class="card-nav">
+          <button class="nav-btn" id="tfc-prev">&#9664;</button>
+          <button class="btn primary flip-width" id="tfc-flip-btn">Balik Kartu</button>
+          <button class="nav-btn" id="tfc-next">&#9654;</button>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div id="tfc-result" style="display:none;">
+        <div class="quiz-result">
+          <div class="result-title">&#128202; Hasil Tes Flashcard</div>
+          <div class="result-rings">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle class="ring-bg" cx="70" cy="70" r="60"/>
+              <circle class="ring-fill" id="tfc-ring-fill" cx="70" cy="70" r="60"
+                stroke-dasharray="377" stroke-dashoffset="377"/>
+            </svg>
+            <div class="ring-pct" id="tfc-ring-pct">0%</div>
+          </div>
+          <div class="result-stats">
+            <div class="result-stat rs-green"><span class="rs-num" id="tfc-rs-hafal">0</span><span class="rs-label">Hafal</span></div>
+            <div class="result-stat rs-red"><span class="rs-num" id="tfc-rs-belum">0</span><span class="rs-label">Belum</span></div>
+            <div class="result-stat"><span class="rs-num" id="tfc-rs-total">0</span><span class="rs-label">Total</span></div>
+          </div>
+          <div class="wrong-list" id="tfc-belum-list"></div>
+          <div class="btn-group" style="justify-content:center;gap:12px;">
+            <button class="btn primary" id="tfc-retry-btn">&#8634; Ulangi</button>
+            <button class="btn" id="tfc-back-btn">&#8592; Setup</button>
+          </div>
+        </div>
+      </div>
+
     </section>
 
 
