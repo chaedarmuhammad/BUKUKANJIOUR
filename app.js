@@ -994,12 +994,33 @@ const App = (function() {
 
   function handleKeydown(e) {
     const fc = $('flashcard');
-    if (!fc || !fc.classList.contains('active')) return;
-    if (e.key === 'ArrowLeft') prevCard();
-    if (e.key === 'ArrowRight') nextCard();
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault();
-      flipCard();
+    const tfc = $('test-fc');
+
+    // Tab Belajar (Flashcard)
+    if (fc && fc.classList.contains('active')) {
+      if (e.key === 'ArrowLeft') prevCard();
+      if (e.key === 'ArrowRight') nextCard();
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        flipCard();
+      }
+      return;
+    }
+
+    // Tab Tes Flashcard (active session only)
+    if (tfc && tfc.classList.contains('active')) {
+      const active = $('tfc-active');
+      if (!active || active.style.display === 'none') return;
+
+      if (e.key === 'ArrowLeft') { tfcPrev(); }
+      if (e.key === 'ArrowRight') { tfcNext(); }
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        tfcFlipCard();
+      }
+      // Shortcut: 1 = Belum Hafal, 2 = Hafal
+      if (e.key === '1') { tfcMarkBelum(); }
+      if (e.key === '2') { tfcMarkHafal(); }
     }
   }
 
