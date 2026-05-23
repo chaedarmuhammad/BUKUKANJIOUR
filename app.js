@@ -1364,8 +1364,14 @@ const App = (function() {
     }
   }
 
-  function tfcPrev() { if (tfcIndex > 0) { tfcIndex--; tfcUpdateCard(); } }
-  function tfcNext() { if (tfcIndex < tfcCards.length - 1) { tfcIndex++; tfcUpdateCard(); } }
+  function tfcPrev() { if (tfcIndex > 0) { tfcIndex--; tfcUpdateCard(); tfcCheckComplete(); } }
+  function tfcNext() {
+    if (tfcIndex < tfcCards.length - 1) {
+      tfcIndex++;
+      tfcUpdateCard();
+      tfcCheckComplete();
+    }
+  }
 
   /** Mark current card as hafal */
   function tfcMarkHafal() {
@@ -1376,10 +1382,18 @@ const App = (function() {
       recordProgress(card.parentN, true);
     }
     tfcUpdateCard();
-    tfcCheckComplete();
-    // Auto-advance if not complete
-    if (Object.keys(tfcResults).length < tfcCards.length && tfcIndex < tfcCards.length - 1) {
+
+    // Check if all cards are marked
+    const allMarked = Object.keys(tfcResults).length >= tfcCards.length;
+    if (allMarked) {
+      // All done! Show result after short delay
+      tfcShowFinish();
+    } else if (tfcIndex < tfcCards.length - 1) {
+      // Auto-advance to next card
       setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
+    } else {
+      // On last card but not all marked — show finish button to let user finish or go back
+      tfcCheckComplete();
     }
   }
 
@@ -1392,23 +1406,48 @@ const App = (function() {
       recordProgress(card.parentN, false);
     }
     tfcUpdateCard();
-    tfcCheckComplete();
-    // Auto-advance if not complete
-    if (Object.keys(tfcResults).length < tfcCards.length && tfcIndex < tfcCards.length - 1) {
+
+    // Check if all cards are marked
+    const allMarked = Object.keys(tfcResults).length >= tfcCards.length;
+    if (allMarked) {
+      // All done! Show result after short delay
+      tfcShowFinish();
+    } else if (tfcIndex < tfcCards.length - 1) {
+      // Auto-advance to next card
       setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
+    } else {
+      // On last card but not all marked — show finish button to let user finish or go back
+      tfcCheckComplete();
     }
   }
 
-  /** Check if all cards have been marked, show finish button or auto-finish */
+  /** Show the finish button and auto-navigate to result */
+  function tfcShowFinish() {
+    const finishBtn = $('tfc-finish-btn');
+    if (finishBtn) finishBtn.style.display = 'block';
+    // Auto-navigate to result after short delay
+    setTimeout(() => tfcShowResult(), 800);
+  }
+
+  /** Check if all cards have been marked, show finish button if ready */
   function tfcCheckComplete() {
     const marked = Object.keys(tfcResults).length;
     const finishBtn = $('tfc-finish-btn');
     if (marked >= tfcCards.length) {
-      // Show finish button and auto-navigate to result after short delay
-      if (finishBtn) finishBtn.style.display = 'block';
-      setTimeout(() => tfcShowResult(), 800);
+      tfcShowFinish();
     } else {
-      if (finishBtn) finishBtn.style.display = 'none';
+      // Show finish button if on last card (user can finish early or needs to go back)
+      if (tfcIndex === tfcCards.length - 1) {
+        // Count unmarked cards
+        const unmarked = tfcCards.length - marked;
+        if (finishBtn && unmarked <= 0) {
+          finishBtn.style.display = 'block';
+        } else if (finishBtn) {
+          finishBtn.style.display = 'none';
+        }
+      } else {
+        if (finishBtn) finishBtn.style.display = 'none';
+      }
     }
   }
 
@@ -1423,6 +1462,18 @@ const App = (function() {
     const pillB = $('tfc-pill-belum');
     if (pillH) pillH.textContent = `\u2713 ${hafal} Hafal`;
     if (pillB) pillB.textContent = `\u2717 ${belum} Belum`;
+
+    // Show "finish early" button when user has marked at least some cards
+    // but not all, so they have an option to end the test anytime
+    const marked = hafal + belum;
+    const earlyBtn = $('tfc-finish-early-btn');
+    if (earlyBtn) {
+      if (marked > 0 && marked < tfcCards.length) {
+        earlyBtn.style.display = 'block';
+      } else {
+        earlyBtn.style.display = 'none';
+      }
+    }
   }
 
   /** Toggle shuffle ON/OFF */
@@ -1510,6 +1561,21 @@ const App = (function() {
     tfcShowView('setup');
   }
 
+  /** Finish test early - unmarked cards count as 'belum' */
+  function tfcFinishEarly() {
+    // Mark all unmarked cards as 'belum'
+    for (let i = 0; i < tfcCards.length; i++) {
+      if (!tfcResults[i]) {
+        tfcResults[i] = 'belum';
+        const card = tfcCards[i];
+        if (card && card.parentN) {
+          recordProgress(card.parentN, false);
+        }
+      }
+    }
+    tfcShowResult();
+  }
+
   /** Retry test flashcard */
   function tfcRetry() {
     tfcIndex = 0;
@@ -1538,6 +1604,7 @@ const App = (function() {
     $('tfc-retry-btn')?.addEventListener('click', tfcRetry);
     $('tfc-back-btn')?.addEventListener('click', tfcQuit);
     $('tfc-finish-now')?.addEventListener('click', tfcShowResult);
+    $('tfc-finish-early')?.addEventListener('click', tfcFinishEarly);
 
     // Mode selection
     $$('[data-tfc-mode]').forEach(el => {
