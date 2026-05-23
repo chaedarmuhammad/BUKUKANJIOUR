@@ -192,6 +192,57 @@ const App = (function() {
     });
   }
 
+  /**
+   * Format example string into nicely structured HTML with colored kanji words.
+   * @param {string} exStr - Raw example string like "山脈 (さんみゃく) – pegunungan · 富士山 (ふじさん) – Gunung Fuji"
+   * @param {string} type - 'on' or 'kun' to determine color scheme
+   * @returns {string} HTML string
+   */
+  function formatExamplesHtml(exStr, type) {
+    if (!exStr || exStr === '\u2014') return '';
+    const items = exStr.split('\u00b7').map(s => s.trim()).filter(Boolean);
+    if (items.length === 0) return '';
+
+    const label = type === 'on' ? '\u97F3\u8AAD\u307F' : '\u8A13\u8AAD\u307F';
+    const wordClass = type === 'on' ? 'ex-word-on' : 'ex-word-kun';
+
+    let html = `<div class="ex-section ex-section-${type}">`;
+    html += `<div class="ex-section-label">${label}</div>`;
+    html += '<div class="ex-items">';
+
+    for (const item of items) {
+      // Match: WORD (READING) – MEANING
+      const m = item.match(/^(.+?)\s*[（(](.+?)[）)]\s*[–—-]\s*(.+)$/);
+      if (m) {
+        html += `<div class="ex-item"><span class="${wordClass}">${m[1].trim()}</span> <span class="ex-reading">(${m[2].trim()})</span> <span class="ex-meaning">${m[3].trim()}</span></div>`;
+      } else {
+        // Fallback: WORD – MEANING (no reading)
+        const m2 = item.match(/^(.+?)\s*[–—-]\s*(.+)$/);
+        if (m2) {
+          html += `<div class="ex-item"><span class="${wordClass}">${m2[1].trim()}</span> <span class="ex-meaning">${m2[2].trim()}</span></div>`;
+        } else {
+          html += `<div class="ex-item">${item}</div>`;
+        }
+      }
+    }
+
+    html += '</div></div>';
+    return html;
+  }
+
+  /**
+   * Highlight the current kanji character in a sentence with a colored span.
+   * @param {string} sentence - Japanese sentence
+   * @param {string} kanjiChar - The kanji character to highlight
+   * @returns {string} HTML with highlighted kanji
+   */
+  function highlightKanjiInSentence(sentence, kanjiChar) {
+    if (!sentence || !kanjiChar) return sentence || '';
+    // Escape for regex and replace all occurrences
+    const escaped = kanjiChar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return sentence.replace(new RegExp(escaped, 'g'), `<span class="sentence-kanji-highlight">${kanjiChar}</span>`);
+  }
+
   /** Update flashcard display with current kanji */
   function updateCard() {
     const k = KANJI[fcOrder[fcIndex]];
@@ -203,13 +254,12 @@ const App = (function() {
     DOM.kanjiBackOn.textContent = k.on || '\u2014';
     DOM.kanjiBackKun.textContent = k.kun || '\u2014';
 
-    // Example block
-    let exHtml = `<span class="ex-on">\u97F3: ${k.on_ex || '\u2014'}</span><br>` +
-                 `<span class="ex-kun">\u8A13: ${k.kun_ex || '\u2014'}</span>`;
+    // Example block — formatted per line with colored kanji
+    let exHtml = formatExamplesHtml(k.on_ex, 'on') + formatExamplesHtml(k.kun_ex, 'kun');
     if (k.sentence) {
       exHtml += `<div class="sentence-block">
         <div class="sentence-label">\u2015 CONTOH KALIMAT</div>
-        <div class="sentence-jp">${k.sentence}</div>
+        <div class="sentence-jp">${highlightKanjiInSentence(k.sentence, k.char)}</div>
         <div class="sentence-id">${k.sentence_id}</div>
       </div>`;
     }
@@ -693,10 +743,12 @@ const App = (function() {
         <span class="fb-label">\u8A13\u8AAD\u307F</span>
         <span class="fb-pill-kun">${q.kun}</span>
       </div>
-      ${(q.on_ex || q.kun_ex) ? '<div class="fb-ex">' +
-        (q.on_ex ? '<div style="margin-bottom:4px;"><span class="fb-on">\u97F3\u306E\u4F8B</span>&nbsp;' + q.on_ex + '</div>' : '') +
-        (q.kun_ex ? '<div><span class="fb-kun">\u8A13\u306E\u4F8B</span>&nbsp;' + q.kun_ex + '</div>' : '') +
-        '</div>' : ''}`;
+      ${formatExamplesHtml(q.on_ex, 'on') + formatExamplesHtml(q.kun_ex, 'kun')}
+      ${q.sentence ? `<div class="sentence-block" style="margin-top:8px;">
+        <div class="sentence-label">\u2015 CONTOH KALIMAT</div>
+        <div class="sentence-jp">${highlightKanjiInSentence(q.sentence, q.char)}</div>
+        <div class="sentence-id">${q.sentence_id}</div>
+      </div>` : ''}`;
   }
 
   /** Move to next question */
