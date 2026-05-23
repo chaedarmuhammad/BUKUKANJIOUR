@@ -415,6 +415,40 @@ const App = (function() {
     qMode = el.dataset.mode;
   }
 
+  /**
+   * Determine mastery level of a kanji using hybrid SRS + accuracy logic.
+   * Uses streak & interval (recent performance) as primary indicator,
+   * with lifetime accuracy as secondary factor.
+   * 
+   * Levels:
+   * - null    : Belum pernah dilatih
+   * - 'lemah' : Baru mulai / sering salah / streak rendah
+   * - 'sedang': Sudah pernah benar tapi belum konsisten
+   * - 'kuasai': Streak tinggi dan interval panjang (benar konsisten)
+   * 
+   * @param {object} p - Progress entry {correct, wrong, streak, interval, ...}
+   * @returns {string|null} 'kuasai' | 'sedang' | 'lemah' | null
+   */
+  function getMasteryLevel(p) {
+    if (!p) return null;
+    const total = p.correct + p.wrong;
+    if (total === 0) return null;
+
+    // Primary: SRS-based (reflects RECENT performance)
+    // streak ≥ 3 AND interval ≥ 6 days = truly mastered (consistent correct answers)
+    // streak ≥ 2 OR interval ≥ 3 = progressing well
+    // streak 0 = just got it wrong recently
+
+    if (p.streak >= 3 && p.interval >= 6) return 'kuasai';
+    if (p.streak >= 2 || p.interval >= 3) return 'sedang';
+
+    // Secondary: if streak is low, check lifetime accuracy as fallback
+    const acc = Math.round(p.correct / total * 100);
+    if (acc >= 80 && total >= 3) return 'sedang'; // high accuracy but lost streak
+    
+    return 'lemah';
+  }
+
   /** Filter kanji selector by progress */
   function selectByProgress(type) {
     $$('.qfilter-btn').forEach(b => b.classList.remove('active-qfilter'));
@@ -424,16 +458,15 @@ const App = (function() {
     KANJI.forEach((k, i) => {
       const tile = $('kst-' + i);
       if (!tile) return;
-      const p = progressData[k.n] || { correct: 0, wrong: 0 };
-      const total = p.correct + p.wrong;
-      const acc = total > 0 ? Math.round(p.correct / total * 100) : null;
+      const p = progressData[k.n];
+      const level = getMasteryLevel(p);
 
       let include = false;
       if (type === 'all') include = true;
-      else if (type === 'belum') include = (acc === null);
-      else if (type === 'lemah') include = (acc !== null && acc < 40);
-      else if (type === 'sedang') include = (acc !== null && acc >= 40 && acc < 70);
-      else if (type === 'kuasai') include = (acc !== null && acc >= 70);
+      else if (type === 'belum') include = (level === null);
+      else if (type === 'lemah') include = (level === 'lemah');
+      else if (type === 'sedang') include = (level === 'sedang');
+      else if (type === 'kuasai') include = (level === 'kuasai');
 
       if (include) {
         selectedIdxs.add(i);
@@ -734,12 +767,21 @@ const App = (function() {
   function renderKanjiCard(k) {
     const p = progressData[k.n] || { correct: 0, wrong: 0 };
     const total = p.correct + p.wrong;
-    const acc = total > 0 ? Math.round(p.correct / total * 100) : null;
-    const dotColor = acc === null ? '' : (acc >= 70 ? '#4caf50' : acc >= 40 ? '#c8960a' : '#d94f3d');
-    const dot = acc !== null ? `<span class="progress-dot" style="background:${dotColor};"></span>` : '';
-    const progText = total > 0
-      ? `<div class="list-progress" style="color:${acc >= 70 ? 'var(--green)' : acc >= 40 ? 'var(--gold)' : 'var(--red)'};">${acc}% (${p.correct}\u2713 ${p.wrong}\u2717)</div>`
-      : '<div class="list-progress" style="color:var(--muted);">Belum dilatih</div>';
+    const level = getMasteryLevel(progressData[k.n]);
+    
+    const levelColors = { kuasai: '#4caf50', sedang: '#c8960a', lemah: '#d94f3d' };
+    const levelLabels = { kuasai: 'Dikuasai', sedang: 'Sedang', lemah: 'Lemah' };
+    const dotColor = level ? levelColors[level] : '';
+    const dot = level ? `<span class="progress-dot" style="background:${dotColor};"></span>` : '';
+    
+    let progText;
+    if (total > 0) {
+      const acc = Math.round(p.correct / total * 100);
+      const color = level ? levelColors[level] : 'var(--muted)';
+      progText = `<div class="list-progress" style="color:${color};">${levelLabels[level] || ''} ${acc}% (${p.correct}\u2713 ${p.wrong}\u2717)</div>`;
+    } else {
+      progText = '<div class="list-progress" style="color:var(--muted);">Belum dilatih</div>';
+    }
 
     return `<div class="list-card" data-n="${k.n}">
       ${dot}
@@ -783,20 +825,9 @@ const App = (function() {
 
     let filtered;
     if (type === 'all') filtered = KANJI;
-    else if (type === 'belum') filtered = KANJI.filter(k => {
-      const p = progressData[k.n];
-      return !p || (p.correct + p.wrong) === 0;
-    });
-    else if (type === 'lemah') filtered = KANJI.filter(k => {
-      const p = progressData[k.n];
-      if (!p || (p.correct + p.wrong) === 0) return false;
-      return Math.round(p.correct / (p.correct + p.wrong) * 100) < 70;
-    });
-    else if (type === 'kuasai') filtered = KANJI.filter(k => {
-      const p = progressData[k.n];
-      if (!p || (p.correct + p.wrong) === 0) return false;
-      return Math.round(p.correct / (p.correct + p.wrong) * 100) >= 70;
-    });
+    else if (type === 'belum') filtered = KANJI.filter(k => getMasteryLevel(progressData[k.n]) === null);
+    else if (type === 'lemah') filtered = KANJI.filter(k => getMasteryLevel(progressData[k.n]) === 'lemah');
+    else if (type === 'kuasai') filtered = KANJI.filter(k => getMasteryLevel(progressData[k.n]) === 'kuasai');
 
     DOM.listGrid.innerHTML = filtered.map(k => renderKanjiCard(k)).join('');
     attachListCardClicks();
@@ -828,8 +859,7 @@ const App = (function() {
         practiced++;
         totalCorrect += p.correct;
         totalWrong += p.wrong;
-        const acc = Math.round(p.correct / (p.correct + p.wrong) * 100);
-        if (acc >= 70) mastered++;
+        if (getMasteryLevel(p) === 'kuasai') mastered++;
       }
     });
 
