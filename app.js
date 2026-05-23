@@ -1089,9 +1089,10 @@ const App = (function() {
         type: 'parent'
       });
 
-      // Parse on_ex examples
+      // Parse on_ex examples (skip if word is same as parent kanji)
       const onExamples = parseExamples(k.on_ex);
       for (const ex of onExamples) {
+        if (ex.word === k.char) continue; // Skip duplikat dengan kanji induk
         tfcCards.push({
           word: ex.word,
           reading: ex.reading,
@@ -1102,9 +1103,10 @@ const App = (function() {
         });
       }
 
-      // Parse kun_ex examples
+      // Parse kun_ex examples (skip if word is same as parent kanji)
       const kunExamples = parseExamples(k.kun_ex);
       for (const ex of kunExamples) {
+        if (ex.word === k.char) continue; // Skip duplikat dengan kanji induk
         tfcCards.push({
           word: ex.word,
           reading: ex.reading,
