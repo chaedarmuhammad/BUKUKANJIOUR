@@ -1415,7 +1415,7 @@ const App = (function() {
       if (wordEl) {
         // Show reading + meaning as the question
         const displayReading = card.reading || '—';
-        wordEl.innerHTML = `<span style="font-size:2rem;font-family:'Noto Serif JP',serif;color:#c0392b;">${displayReading}</span><br><span style="font-size:1.2rem;color:#1a1208;margin-top:8px;display:block;">${card.meaning}</span>`;
+        wordEl.innerHTML = `<span style="font-size:2rem;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;color:#c0392b;">${displayReading}</span><br><span style="font-size:1.2rem;color:#1a1208;margin-top:8px;display:block;">${card.meaning}</span>`;
       }
       if (backWord) backWord.textContent = card.word;
       if (backReading) backReading.textContent = card.reading || '—';
