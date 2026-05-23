@@ -174,6 +174,62 @@ const App = (function() {
     filterList('all');
   }
 
+  /** Export progress data as JSON file download */
+  function exportProgress() {
+    loadProgress();
+    const data = {
+      version: 1,
+      exportDate: new Date().toISOString(),
+      totalKanji: KANJI.length,
+      progress: progressData
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kanji-progress-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /** Import progress data from JSON file */
+  function importProgress() {
+    const input = $('import-file-input');
+    if (input) input.click();
+  }
+
+  /** Handle file selection for import */
+  function handleImportFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (!data.progress || typeof data.progress !== 'object') {
+          alert('File tidak valid: tidak ditemukan data progress.');
+          return;
+        }
+        if (!confirm(`Import progress dari ${data.exportDate ? data.exportDate.slice(0, 10) : 'file'}?\nData progress saat ini akan ditimpa.`)) return;
+
+        progressData = data.progress;
+        saveProgress();
+        renderProgress();
+        buildList();
+        filterList('all');
+        alert('Progress berhasil di-import!');
+      } catch (err) {
+        alert('Gagal membaca file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be re-imported
+    e.target.value = '';
+  }
+
 
   // ── FLASHCARD ──────────────────────────────────────────────────────────────
 
@@ -1024,6 +1080,67 @@ const App = (function() {
     }
   }
 
+  // ── TOUCH SWIPE SUPPORT ──────────────────────────────────────────────────
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  const SWIPE_THRESHOLD = 50;
+  const SWIPE_TIME_LIMIT = 300;
+
+  /**
+   * Initialize swipe gestures on an element
+   * @param {HTMLElement} el - Element to attach swipe to
+   * @param {object} handlers - { onLeft, onRight, onTap }
+   */
+  function initSwipe(el, handlers) {
+    if (!el) return;
+
+    el.addEventListener('touchstart', function(e) {
+      const touch = e.changedTouches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+    }, { passive: true });
+
+    el.addEventListener('touchend', function(e) {
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      const dt = Date.now() - touchStartTime;
+
+      // Only register horizontal swipes (not vertical scroll)
+      if (dt > SWIPE_TIME_LIMIT) return;
+      if (Math.abs(dy) > Math.abs(dx)) return; // vertical scroll
+
+      if (dx > SWIPE_THRESHOLD && handlers.onRight) {
+        e.preventDefault();
+        handlers.onRight();
+      } else if (dx < -SWIPE_THRESHOLD && handlers.onLeft) {
+        e.preventDefault();
+        handlers.onLeft();
+      }
+    }, { passive: false });
+  }
+
+  /** Setup swipe for the main flashcard */
+  function initFlashcardSwipe() {
+    const cardScene = $('card-scene');
+    initSwipe(cardScene, {
+      onLeft: nextCard,
+      onRight: prevCard
+    });
+  }
+
+  /** Setup swipe for the test flashcard */
+  function initTfcSwipe() {
+    const tfcCard = $('tfc-card');
+    initSwipe(tfcCard, {
+      onLeft: tfcNext,
+      onRight: tfcPrev
+    });
+  }
+
   // ── EVENT BINDING ──────────────────────────────────────────────────────────
 
   /** Bind all events using addEventListener (no inline onclick) */
@@ -1077,6 +1194,9 @@ const App = (function() {
 
     // Progress
     $('btn-reset-progress')?.addEventListener('click', clearProgress);
+    $('btn-export-progress')?.addEventListener('click', exportProgress);
+    $('btn-import-progress')?.addEventListener('click', importProgress);
+    $('import-file-input')?.addEventListener('change', handleImportFile);
 
     // Keyboard
     document.addEventListener('keydown', handleKeydown);
@@ -1100,6 +1220,8 @@ const App = (function() {
       updateSRSBanner();
       tfcBuildSelector();
       tfcBindEvents();
+      initFlashcardSwipe();
+      initTfcSwipe();
       console.log(`Kanji App initialized: ${KANJI.length} kanji loaded`);
     } catch (e) {
       console.error('Init error:', e);

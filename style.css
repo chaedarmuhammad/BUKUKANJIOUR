@@ -4,10 +4,10 @@
  * Refactored: removed duplicate font imports, converted inline styles to classes
  */
 
-/* ── FONTS (single import, no duplication) ── */
+/* ── FONTS ── */
+/* Loaded via <link> in HTML with font-display: swap for performance */
 /* Klee One: 教科書体 style, stroke mirip tulisan tangan — ideal untuk belajar kanji */
 /* Zen Kaku Gothic New: sans-serif tegas, readable untuk bacaan & contoh kata */
-@import url('https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 /* ── VARIABLES ── */
 :root {
@@ -49,12 +49,15 @@ body {
   font-family: 'Noto Sans JP', sans-serif;
   color: var(--ink);
   min-height: 100vh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* ── HEADER ── */
 header {
   text-align: center;
-  padding: 28px 20px 16px;
+  padding: 20px 20px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
 }
@@ -77,6 +80,9 @@ header {
   border-bottom: 1px solid var(--border);
   background: var(--bg);
   gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .tab-btn {
@@ -90,6 +96,7 @@ header {
   color: var(--muted);
   transition: all 0.2s;
   letter-spacing: 0.05em;
+  min-height: 48px;
 }
 
 .tab-btn:hover:not(.active) { color: var(--ink2); }
@@ -137,7 +144,7 @@ header {
 
 /* ── BUTTONS ── */
 .btn {
-  padding: 8px 16px;
+  padding: 10px 16px;
   border: 1px solid var(--border2);
   background: var(--surface);
   cursor: pointer;
@@ -147,6 +154,10 @@ header {
   color: var(--ink2);
   border-radius: 6px;
   transition: all 0.15s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn:hover {
@@ -181,7 +192,7 @@ header {
   padding: 13px;
 }
 
-.btn.flip-width { width: 120px; }
+.btn.flip-width { width: 140px; padding: 10px 16px; }
 
 .btn.gold {
   font-size: 0.95rem;
@@ -232,6 +243,7 @@ header {
   justify-content: flex-start;
   padding: 24px 28px;
   border-radius: 20px;
+  max-height: 70vh;
 }
 
 .card-inner.flipped .card-back { display: flex; }
@@ -437,13 +449,13 @@ header {
 }
 
 .nav-btn {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: 1px solid var(--border2);
   background: var(--surface);
   color: var(--ink2);
-  font-size: 0.9rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -548,13 +560,14 @@ header {
 .mode-card {
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   cursor: pointer;
   transition: all 0.18s;
   background: var(--surface);
   display: flex;
   align-items: center;
   gap: 14px;
+  min-height: 48px;
 }
 
 .mode-card:hover { border-color: var(--border2); }
@@ -625,14 +638,15 @@ header {
 }
 
 .small-btn {
-  font-size: 0.68rem;
-  padding: 2px 8px;
+  font-size: 0.7rem;
+  padding: 5px 10px;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
   color: var(--ink2);
+  min-height: 32px;
 }
 
 .small-btn:hover {
@@ -667,7 +681,7 @@ header {
 
 .group-btn {
   font-size: 0.68rem;
-  padding: 3px 8px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 4px;
@@ -675,6 +689,7 @@ header {
   font-family: inherit;
   color: var(--ink2);
   transition: all 0.15s;
+  min-height: 36px;
 }
 
 .group-btn.active {
@@ -1303,7 +1318,7 @@ header {
 
 .qfilter-btn {
   font-size: 0.7rem;
-  padding: 5px 12px;
+  padding: 7px 14px;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 20px;
@@ -1311,6 +1326,7 @@ header {
   font-family: inherit;
   color: var(--muted);
   transition: all 0.15s;
+  min-height: 36px;
 }
 
 .qfilter-btn:hover {
@@ -1325,8 +1341,8 @@ header {
 }
 
 .filter-btn {
-  font-size: 0.68rem;
-  padding: 4px 12px;
+  font-size: 0.7rem;
+  padding: 7px 14px;
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 20px;
@@ -1334,6 +1350,7 @@ header {
   font-family: inherit;
   color: var(--muted);
   transition: all 0.15s;
+  min-height: 36px;
 }
 
 .filter-btn:hover {
@@ -1402,6 +1419,7 @@ header {
   transition: all 0.15s;
   cursor: pointer;
   position: relative;
+  min-height: 48px;
 }
 
 .list-card:hover {
@@ -1621,6 +1639,31 @@ header {
   font-family: inherit;
 }
 
+/* ── EXPORT / IMPORT SECTION ── */
+.export-import-section {
+  margin-top: 24px;
+  padding: 18px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.export-import-title {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.export-import-desc {
+  font-size: 0.8rem;
+  color: var(--ink2);
+  margin-bottom: 14px;
+}
+
 
 /* ── ANIMATIONS ── */
 @keyframes fadeIn {
@@ -1642,18 +1685,79 @@ header {
   .kanji-display { font-size: 5.5rem; }
   .quiz-kanji-big { font-size: 4.5rem; }
   .choices { gap: 8px; }
-  .choice-btn { padding: 12px 8px; font-size: 0.88rem; }
+  .choice-btn { padding: 14px 10px; font-size: 0.88rem; min-height: 48px; }
   .main { padding: 20px 14px; }
   .card-face { padding: 28px 18px 24px; }
   .prog-summary { grid-template-columns: repeat(2, 1fr); }
   .list-legend { gap: 8px; padding: 8px 10px; }
   .legend-item { font-size: 0.65rem; }
+
+  /* Kanji selector: 5 columns on mobile */
+  .kanji-selector { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  .ks-tile { padding: 8px 4px; min-height: 44px; }
+  .ks-tile-char { font-size: 1.3rem; }
+
+  /* Kanji grid navigator: 5 columns */
+  .kanji-grid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .kanji-thumb { padding: 8px 4px; min-height: 44px; }
+
+  /* List grid: 2 columns on small phones */
+  .list-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+
+  /* Group buttons larger */
+  .group-btn { padding: 6px 10px; font-size: 0.72rem; min-height: 36px; }
+
+  /* Filter buttons larger touch target */
+  .filter-btn { padding: 8px 14px; font-size: 0.72rem; min-height: 36px; }
+  .qfilter-btn { padding: 8px 14px; font-size: 0.72rem; min-height: 36px; }
+  .small-btn { padding: 6px 12px; font-size: 0.72rem; min-height: 32px; }
+
+  /* Choices: single column on very small screens */
+  .choices { grid-template-columns: 1fr; }
+
+  /* Nav buttons bigger */
+  .nav-btn { width: 48px; height: 48px; font-size: 1rem; }
+
+  /* Flip button wider */
+  .btn.flip-width { width: 140px; padding: 12px 16px; }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* Tablet adjustments */
+  .kanji-selector { grid-template-columns: repeat(6, 1fr); }
+  .kanji-grid { grid-template-columns: repeat(8, 1fr); }
+  .choices { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 360px) {
+  /* Very small phones */
+  .tab-btn { padding: 10px 10px; font-size: 0.68rem; }
+  .kanji-selector { grid-template-columns: repeat(4, 1fr); }
+  .kanji-display { font-size: 4.5rem; }
+  .tfc-card-word { font-size: 2.5rem; }
+  .choices { grid-template-columns: 1fr; }
 }
 
 /* ── UTILITY CLASSES ── */
 .text-center { text-align: center; }
 .mt-4 { margin-top: 4px; }
 .hidden { display: none; }
+
+/* ── SWIPE HINT (only on touch devices) ── */
+.swipe-hint {
+  display: none;
+  font-size: 0.72rem;
+  color: var(--muted);
+  opacity: 0.7;
+  letter-spacing: 0.05em;
+}
+
+@media (pointer: coarse) {
+  .swipe-hint { display: inline-block; }
+}
+
+/* ── SMOOTH SCROLL ── */
+html { scroll-behavior: smooth; }
 
 
 
