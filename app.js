@@ -1483,30 +1483,26 @@ const App = (function() {
         // All done! Show result automatically
         setTimeout(() => tfcShowResult(), 500);
       }
-    } else if (tfcIndex < tfcCards.length - 1) {
-      // Auto-advance to next unmarked card
-      setTimeout(() => {
-        // Find next unmarked card from current position
-        let nextIdx = tfcIndex + 1;
-        while (nextIdx < tfcCards.length && tfcResults[nextIdx]) {
-          nextIdx++;
-        }
-        // If no unmarked card ahead, stay at next position
-        if (nextIdx >= tfcCards.length) {
-          nextIdx = tfcIndex + 1;
-        }
-        tfcIndex = nextIdx < tfcCards.length ? nextIdx : tfcIndex;
-        tfcUpdateCard();
-      }, 300);
     } else {
-      // On last card but not all marked — find first unmarked card
-      let firstUnmarked = -1;
-      for (let i = 0; i < tfcCards.length; i++) {
-        if (!tfcResults[i]) { firstUnmarked = i; break; }
-      }
-      if (firstUnmarked >= 0) {
-        setTimeout(() => { tfcIndex = firstUnmarked; tfcUpdateCard(); }, 300);
-      }
+      // Auto-advance to next unmarked card (search forward only, then wrap)
+      setTimeout(() => {
+        // Search forward from current position
+        let nextIdx = -1;
+        for (let i = tfcIndex + 1; i < tfcCards.length; i++) {
+          if (!tfcResults[i]) { nextIdx = i; break; }
+        }
+        // If nothing forward, wrap around from beginning
+        if (nextIdx === -1) {
+          for (let i = 0; i < tfcIndex; i++) {
+            if (!tfcResults[i]) { nextIdx = i; break; }
+          }
+        }
+        // If found an unmarked card, go to it
+        if (nextIdx >= 0 && nextIdx < tfcCards.length) {
+          tfcIndex = nextIdx;
+          tfcUpdateCard();
+        }
+      }, 300);
     }
   }
 
@@ -1532,7 +1528,8 @@ const App = (function() {
     }
 
     // SRS: add card to repeat queue if enabled
-    if (tfcSrsEnabled && card) {
+    // Only add if this is NOT already a repeated SRS card (prevent infinite loop)
+    if (tfcSrsEnabled && card && tfcIndex < tfcOriginalOrder.length) {
       tfcSrsQueue.push(card);
       tfcUpdateSrsPill();
     }
@@ -1554,6 +1551,9 @@ const App = (function() {
     const srsCards = [...tfcSrsQueue];
     tfcSrsQueue = []; // Clear queue
     
+    // Remember the index where new SRS cards start
+    const srsStartIdx = tfcCards.length;
+    
     for (const card of srsCards) {
       tfcCards.push(card);
       // No result set for new cards — they need to be marked again
@@ -1561,8 +1561,8 @@ const App = (function() {
     
     tfcUpdateSrsPill();
     
-    // Auto-advance to next (first SRS) card
-    setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
+    // Jump directly to the first new SRS card
+    setTimeout(() => { tfcIndex = srsStartIdx; tfcUpdateCard(); }, 300);
   }
 
   /** Update SRS pill display */
