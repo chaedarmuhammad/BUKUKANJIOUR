@@ -1045,6 +1045,7 @@ const App = (function() {
   let tfcFlipped = false;
   let tfcShuffled = false;
   let tfcResults = {};      // { idx: 'hafal' | 'belum' | null }
+  let tfcMode = 'word-to-reading'; // 'word-to-reading' or 'reading-to-word'
 
   /**
    * Parse example string into individual word entries.
@@ -1216,6 +1217,43 @@ const App = (function() {
     if (label) label.textContent = `${tfcSelectedIdxs.size} dipilih`;
   }
 
+  /** Select TFC mode */
+  function tfcSelectMode(el) {
+    $$('[data-tfc-mode]').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    tfcMode = el.dataset.tfcMode;
+  }
+
+  /** Filter TFC kanji selector by progress */
+  function tfcSelectByProgress(type) {
+    $$('[data-tfc-filter]').forEach(b => b.classList.remove('active-qfilter'));
+    const btn = $('tfc-qf-' + type);
+    if (btn) btn.classList.add('active-qfilter');
+
+    KANJI.forEach((k, i) => {
+      const tile = $('tfc-kst-' + i);
+      if (!tile) return;
+      const p = progressData[k.n];
+      const level = getMasteryLevel(p);
+
+      let include = false;
+      if (type === 'all') include = true;
+      else if (type === 'belum') include = (level === null);
+      else if (type === 'lemah') include = (level === 'lemah');
+      else if (type === 'sedang') include = (level === 'sedang');
+      else if (type === 'kuasai') include = (level === 'kuasai');
+
+      if (include) {
+        tfcSelectedIdxs.add(i);
+        tile.classList.add('selected');
+      } else {
+        tfcSelectedIdxs.delete(i);
+        tile.classList.remove('selected');
+      }
+    });
+    tfcUpdateSelCount();
+  }
+
   /** Start the Tes Flashcard session */
   function tfcStart() {
     if (tfcSelectedIdxs.size === 0) {
@@ -1279,7 +1317,6 @@ const App = (function() {
                       card.type === 'on_ex' ? `Contoh On'yomi dari ${card.parentChar}` :
                       `Contoh Kun'yomi dari ${card.parentChar}`;
     if (sourceEl) sourceEl.textContent = typeLabel;
-    if (wordEl) wordEl.textContent = card.word;
 
     // Back
     const backWord = $('tfc-back-word');
@@ -1287,9 +1324,23 @@ const App = (function() {
     const backMeaning = $('tfc-back-meaning');
     const backParent = $('tfc-back-parent');
 
-    if (backWord) backWord.textContent = card.word;
-    if (backReading) backReading.textContent = card.reading || '—';
-    if (backMeaning) backMeaning.textContent = card.meaning;
+    if (tfcMode === 'word-to-reading') {
+      // Mode: Kata → Bacaan & Arti
+      if (wordEl) wordEl.textContent = card.word;
+      if (backWord) backWord.textContent = card.word;
+      if (backReading) backReading.textContent = card.reading || '—';
+      if (backMeaning) backMeaning.textContent = card.meaning;
+    } else {
+      // Mode: Bacaan & Arti → Kata
+      if (wordEl) {
+        // Show reading + meaning as the question
+        const displayReading = card.reading || '—';
+        wordEl.innerHTML = `<span style="font-size:2rem;font-family:'Noto Serif JP',serif;color:#c0392b;">${displayReading}</span><br><span style="font-size:1.2rem;color:#1a1208;margin-top:8px;display:block;">${card.meaning}</span>`;
+      }
+      if (backWord) backWord.textContent = card.word;
+      if (backReading) backReading.textContent = card.reading || '—';
+      if (backMeaning) backMeaning.textContent = card.meaning;
+    }
     if (backParent) backParent.textContent = `Kanji induk: ${card.parentChar} (No.${card.parentN})`;
 
     // Reset flip
@@ -1500,6 +1551,18 @@ const App = (function() {
     $('tfc-retry-btn')?.addEventListener('click', tfcRetry);
     $('tfc-back-btn')?.addEventListener('click', tfcQuit);
     $('tfc-finish-now')?.addEventListener('click', tfcShowResult);
+
+    // Mode selection
+    $$('[data-tfc-mode]').forEach(el => {
+      el.addEventListener('click', function() { tfcSelectMode(this); });
+    });
+
+    // Filter by progress
+    $$('[data-tfc-filter]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        tfcSelectByProgress(this.dataset.tfcFilter);
+      });
+    });
   }
 
 
