@@ -5,7 +5,9 @@
  */
 
 /* ── FONTS (single import, no duplication) ── */
-@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap');
+/* Klee One: 教科書体 style, stroke mirip tulisan tangan — ideal untuk belajar kanji */
+/* Zen Kaku Gothic New: sans-serif tegas, readable untuk bacaan & contoh kata */
+@import url('https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 /* ── VARIABLES ── */
 :root {
@@ -120,7 +122,7 @@ header {
 }
 
 .fc-counter {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 0.9rem;
   color: var(--muted);
 }
@@ -236,7 +238,7 @@ header {
 .card-inner.flipped .card-face:not(.card-back) { display: none; }
 
 .kanji-display {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 7rem;
   line-height: 1;
   color: var(--card-ink);
@@ -259,7 +261,7 @@ header {
 
 /* ── CARD BACK DETAILS ── */
 .kanji-back-char {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 2.6rem;
   color: var(--red-dim);
   margin-bottom: 4px;
@@ -300,7 +302,7 @@ header {
 }
 
 .reading-value {
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
 }
@@ -356,13 +358,13 @@ header {
   border-bottom: none;
 }
 .ex-word-on {
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
   color: #a02820;
 }
 .ex-word-kun {
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
   color: #1a4a90;
@@ -409,7 +411,7 @@ header {
 }
 
 .sentence-jp {
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 1.05rem;
   line-height: 1.9;
   color: #1a1208;
@@ -494,7 +496,7 @@ header {
   padding: 6px 2px;
   text-align: center;
   cursor: pointer;
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 1rem;
   color: var(--ink2);
   background: var(--surface);
@@ -516,7 +518,7 @@ header {
 
 /* ── QUIZ SETUP ── */
 .quiz-setup-card h2 {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 1.5rem;
   color: var(--ink);
   margin-bottom: 6px;
@@ -701,7 +703,7 @@ header {
   transition: all 0.12s;
   user-select: none;
   opacity: 0.4;
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 1rem;
   color: var(--ink2);
 }
@@ -716,7 +718,7 @@ header {
 }
 
 .ks-tile-char {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 1.5rem;
   display: block;
   line-height: 1.2;
@@ -865,7 +867,7 @@ header {
 }
 
 .quiz-kanji-big {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 6rem;
   line-height: 1;
   color: var(--ink);
@@ -887,7 +889,7 @@ header {
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--red);
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   white-space: nowrap;
 }
 
@@ -902,7 +904,7 @@ header {
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--blue);
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   white-space: nowrap;
 }
 
@@ -928,7 +930,7 @@ header {
   border-radius: 12px;
   padding: 16px 12px;
   cursor: pointer;
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 1rem;
   color: var(--ink);
   transition: all 0.15s;
@@ -992,7 +994,7 @@ header {
 
 .choice-kanji {
   font-size: 3rem;
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   display: block;
   line-height: 1.2;
   color: var(--ink);
@@ -1055,7 +1057,7 @@ header {
 }
 
 .fb-kanji {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 3.5rem;
   line-height: 1;
   color: var(--ink);
@@ -1090,7 +1092,7 @@ header {
   border: 1px solid var(--red-dim);
   padding: 1px 8px;
   border-radius: 4px;
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -1101,7 +1103,7 @@ header {
   border: 1px solid #2a4080;
   padding: 1px 8px;
   border-radius: 4px;
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -1207,7 +1209,7 @@ header {
 }
 
 .result-grade {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 1.2rem;
   color: var(--ink);
   margin-bottom: 16px;
@@ -1258,7 +1260,7 @@ header {
 }
 
 .w-kanji {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 1.8rem;
   color: var(--red);
   min-width: 40px;
@@ -1438,7 +1440,7 @@ header {
 }
 
 .list-kanji {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 2rem;
   color: var(--ink);
   display: block;
@@ -1490,7 +1492,7 @@ header {
 }
 
 .progress-wrapper h2 {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 1.4rem;
   margin-bottom: 4px;
   color: var(--ink);
@@ -1547,7 +1549,7 @@ header {
 }
 
 .prog-row-kanji {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 1.8rem;
   color: var(--red);
   line-height: 1;
@@ -1679,7 +1681,7 @@ header {
 }
 
 .tfc-counter {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 0.9rem;
   color: var(--muted);
 }
@@ -1791,7 +1793,7 @@ header {
 }
 
 .tfc-card-word {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 4.5rem;
   line-height: 1.2;
   color: var(--card-ink);
@@ -1807,14 +1809,14 @@ header {
 }
 
 .tfc-card-word-back {
-  font-family: 'Shippori Mincho', serif;
+  font-family: 'Klee One', cursive;
   font-size: 3rem;
   color: var(--card-ink);
   margin-bottom: 10px;
 }
 
 .tfc-back-reading {
-  font-family: 'Noto Serif JP', serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
   font-size: 1.4rem;
   font-weight: 700;
   color: #c0392b;
