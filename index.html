@@ -2,8 +2,17 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f0e0d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Belajar Kanji Jepang dengan Flashcard, Tes, dan Kuis interaktif. 324 kanji dengan SRS.">
   <title>漢字 Kanji Flashcard</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -68,6 +77,9 @@
         </div>
       </div>
 
+      <div class="text-center mt-4">
+        <span class="swipe-hint">&#8592; Geser untuk navigasi &#8594;</span>
+      </div>
       <div class="text-center mt-4">
         <button class="mini-grid-toggle" id="mini-grid-btn">&#9766; Tampilkan Navigator Kanji</button>
       </div>
@@ -413,6 +425,15 @@
       <div class="text-center" style="margin-top:20px;">
         <button class="btn-reset" id="btn-reset-progress">&#10005; Reset Semua Progress</button>
       </div>
+      <div class="export-import-section">
+        <div class="export-import-title">BACKUP & RESTORE PROGRESS</div>
+        <p class="export-import-desc">Simpan progress ke file agar tidak hilang saat ganti device atau clear cache.</p>
+        <div class="btn-group" style="justify-content:center;gap:10px;flex-wrap:wrap;">
+          <button class="btn" id="btn-export-progress">&#128190; Export Progress</button>
+          <button class="btn" id="btn-import-progress">&#128194; Import Progress</button>
+        </div>
+        <input type="file" id="import-file-input" accept=".json" style="display:none;">
+      </div>
     </section>
 
   </div><!-- /.main -->
@@ -420,6 +441,14 @@
   <!-- Scripts: data first, then app logic -->
   <script src="kanji-data.js"></script>
   <script src="app.js"></script>
+  <script>
+    // Register Service Worker for offline support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
 
 </body>
 </html>
