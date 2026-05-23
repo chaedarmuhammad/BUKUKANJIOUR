@@ -1669,6 +1669,14 @@ const App = (function() {
     }
   }
 
+  /** Hide the current card instantly (prevent flicker when transitioning) */
+  function tfcHideCard() {
+    const front = $('tfc-card-front');
+    const back = $('tfc-card-back');
+    if (front) front.style.display = 'none';
+    if (back) back.style.display = 'none';
+  }
+
   /** Mark current card as hafal */
   function tfcMarkHafal() {
     tfcResults[tfcIndex] = 'hafal';
@@ -1677,7 +1685,9 @@ const App = (function() {
     if (card && card.parentN) {
       recordProgress(card.parentN, true);
     }
-    tfcUpdateCard();
+    // Hide card immediately to prevent flicker before next card loads
+    tfcHideCard();
+    tfcUpdatePills();
     tfcHandleAfterMark();
   }
 
@@ -1697,7 +1707,9 @@ const App = (function() {
       tfcUpdateSrsPill();
     }
 
-    tfcUpdateCard();
+    // Hide card immediately to prevent flicker before next card loads
+    tfcHideCard();
+    tfcUpdatePills();
     tfcHandleAfterMark();
   }
 
