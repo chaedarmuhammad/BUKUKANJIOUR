@@ -297,19 +297,14 @@ const App = (function() {
 
     DOM.groupBtns.innerHTML = groups.map((g, gi) =>
       `<button class="group-btn" id="grp-btn-${gi}" data-start="${g.start}" data-end="${g.end}">${g.label}</button>`
-    ).join('') +
-    `<button class="group-btn" id="grp-btn-recent" data-recent="40">40 Terakhir</button>`;
+    ).join('');
 
     // Attach events
     DOM.groupBtns.querySelectorAll('.group-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         resetGroupBtnStyles();
         this.classList.add('active');
-        if (this.dataset.recent) {
-          selectRecent(parseInt(this.dataset.recent));
-        } else {
-          selectGroup(parseInt(this.dataset.start), parseInt(this.dataset.end));
-        }
+        selectGroup(parseInt(this.dataset.start), parseInt(this.dataset.end));
       });
     });
   }
@@ -326,12 +321,6 @@ const App = (function() {
 
   function selectGroup(start, end) {
     quizActiveGroup = { start, end };
-    applyQuizCombinedFilter();
-  }
-
-  function selectRecent(n) {
-    const start = Math.max(0, KANJI.length - n);
-    quizActiveGroup = { start, end: KANJI.length };
     applyQuizCombinedFilter();
   }
 
@@ -1416,12 +1405,56 @@ const App = (function() {
     }
   }
 
-  function tfcPrev() { if (tfcIndex > 0) { tfcIndex--; tfcUpdateCard(); tfcCheckComplete(); } }
+  function tfcPrev() { if (tfcIndex > 0) { tfcIndex--; tfcUpdateCard(); } }
   function tfcNext() {
     if (tfcIndex < tfcCards.length - 1) {
       tfcIndex++;
       tfcUpdateCard();
-      tfcCheckComplete();
+    }
+  }
+
+  /** Check if all cards are marked and handle completion */
+  function tfcHandleAfterMark() {
+    // Count how many cards have been marked
+    let markedCount = 0;
+    for (let i = 0; i < tfcCards.length; i++) {
+      if (tfcResults[i]) markedCount++;
+    }
+
+    const allMarked = markedCount >= tfcCards.length;
+
+    if (allMarked) {
+      // All cards marked — check if SRS cards need to be appended
+      if (tfcSrsEnabled && tfcSrsQueue.length > 0) {
+        tfcAppendSrsCards();
+      } else {
+        // All done! Show result automatically
+        setTimeout(() => tfcShowResult(), 500);
+      }
+    } else if (tfcIndex < tfcCards.length - 1) {
+      // Auto-advance to next unmarked card
+      setTimeout(() => {
+        // Find next unmarked card from current position
+        let nextIdx = tfcIndex + 1;
+        while (nextIdx < tfcCards.length && tfcResults[nextIdx]) {
+          nextIdx++;
+        }
+        // If no unmarked card ahead, stay at next position
+        if (nextIdx >= tfcCards.length) {
+          nextIdx = tfcIndex + 1;
+        }
+        tfcIndex = nextIdx < tfcCards.length ? nextIdx : tfcIndex;
+        tfcUpdateCard();
+      }, 300);
+    } else {
+      // On last card but not all marked — find first unmarked card
+      let firstUnmarked = -1;
+      for (let i = 0; i < tfcCards.length; i++) {
+        if (!tfcResults[i]) { firstUnmarked = i; break; }
+      }
+      if (firstUnmarked >= 0) {
+        setTimeout(() => { tfcIndex = firstUnmarked; tfcUpdateCard(); }, 300);
+      }
     }
   }
 
@@ -1434,24 +1467,7 @@ const App = (function() {
       recordProgress(card.parentN, true);
     }
     tfcUpdateCard();
-
-    // Check if all cards are marked
-    const allMarked = Object.keys(tfcResults).length >= tfcCards.length;
-    if (allMarked) {
-      // If SRS queue has cards, append them and continue
-      if (tfcSrsEnabled && tfcSrsQueue.length > 0) {
-        tfcAppendSrsCards();
-      } else {
-        // All done! Show result after short delay
-        tfcShowFinish();
-      }
-    } else if (tfcIndex < tfcCards.length - 1) {
-      // Auto-advance to next card
-      setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
-    } else {
-      // On last card but not all marked — show finish button to let user finish or go back
-      tfcCheckComplete();
-    }
+    tfcHandleAfterMark();
   }
 
   /** Mark current card as belum hafal */
@@ -1470,32 +1486,14 @@ const App = (function() {
     }
 
     tfcUpdateCard();
-
-    // Check if all cards are marked
-    const allMarked = Object.keys(tfcResults).length >= tfcCards.length;
-    if (allMarked) {
-      // If SRS queue has cards, append them and continue
-      if (tfcSrsEnabled && tfcSrsQueue.length > 0) {
-        tfcAppendSrsCards();
-      } else {
-        // All done! Show result after short delay
-        tfcShowFinish();
-      }
-    } else if (tfcIndex < tfcCards.length - 1) {
-      // Auto-advance to next card
-      setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
-    } else {
-      // On last card but not all marked — show finish button to let user finish or go back
-      tfcCheckComplete();
-    }
+    tfcHandleAfterMark();
   }
 
   /** Show the finish button and auto-navigate to result */
   function tfcShowFinish() {
     const finishBtn = $('tfc-finish-btn');
     if (finishBtn) finishBtn.style.display = 'block';
-    // Auto-navigate to result after short delay
-    setTimeout(() => tfcShowResult(), 800);
+    setTimeout(() => tfcShowResult(), 500);
   }
 
   /** Append SRS (belum hafal) cards to the end for repeat */
@@ -1530,23 +1528,15 @@ const App = (function() {
 
   /** Check if all cards have been marked, show finish button if ready */
   function tfcCheckComplete() {
-    const marked = Object.keys(tfcResults).length;
+    let markedCount = 0;
+    for (let i = 0; i < tfcCards.length; i++) {
+      if (tfcResults[i]) markedCount++;
+    }
     const finishBtn = $('tfc-finish-btn');
-    if (marked >= tfcCards.length) {
-      tfcShowFinish();
+    if (markedCount >= tfcCards.length) {
+      if (finishBtn) finishBtn.style.display = 'block';
     } else {
-      // Show finish button if on last card (user can finish early or needs to go back)
-      if (tfcIndex === tfcCards.length - 1) {
-        // Count unmarked cards
-        const unmarked = tfcCards.length - marked;
-        if (finishBtn && unmarked <= 0) {
-          finishBtn.style.display = 'block';
-        } else if (finishBtn) {
-          finishBtn.style.display = 'none';
-        }
-      } else {
-        if (finishBtn) finishBtn.style.display = 'none';
-      }
+      if (finishBtn) finishBtn.style.display = 'none';
     }
   }
 
