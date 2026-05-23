@@ -3,7 +3,7 @@
  * Provides offline support via cache-first strategy
  */
 
-const CACHE_NAME = 'kanji-fc-v2';
+const CACHE_NAME = 'kanji-fc-v3';
 const ASSETS = [
   '/',
   '/index.html',
