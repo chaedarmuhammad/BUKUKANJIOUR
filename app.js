@@ -937,6 +937,7 @@ const App = (function() {
     if (tab === 'progress') { loadProgress(); renderProgress(); }
     if (tab === 'list') { loadProgress(); buildList(); filterList('all'); }
     if (tab === 'quiz') { showQuizView(quizView); updateSRSBanner(); }
+    if (tab === 'test-fc') { tfcShowView('setup'); }
   }
 
   // ── KEYBOARD NAVIGATION ────────────────────────────────────────────────────
@@ -1026,11 +1027,466 @@ const App = (function() {
       buildKanjiSelector();
       showQuizView('setup');
       updateSRSBanner();
+      tfcBuildSelector();
+      tfcBindEvents();
       console.log(`Kanji App initialized: ${KANJI.length} kanji loaded`);
     } catch (e) {
       console.error('Init error:', e);
     }
   }
+
+  // ── TES FLASHCARD ────────────────────────────────────────────────────────
+
+  // State
+  let tfcSelectedIdxs = new Set();
+  let tfcCards = [];        // Array of card objects {word, reading, meaning, parentChar, parentN, type}
+  let tfcOriginalOrder = [];
+  let tfcIndex = 0;
+  let tfcFlipped = false;
+  let tfcShuffled = false;
+  let tfcResults = {};      // { idx: 'hafal' | 'belum' | null }
+
+  /**
+   * Parse example string into individual word entries.
+   * Format: "山脈 (さんみゃく) – pegunungan · 富士山 (ふじさん) – Gunung Fuji"
+   * Returns array of {word, reading, meaning}
+   */
+  function parseExamples(exStr) {
+    if (!exStr || exStr === '—') return [];
+    const items = exStr.split('·').map(s => s.trim()).filter(Boolean);
+    const results = [];
+    for (const item of items) {
+      // Match pattern: WORD (READING) – MEANING
+      const m = item.match(/^(.+?)\s*[（(](.+?)[）)]\s*[–—-]\s*(.+)$/);
+      if (m) {
+        results.push({ word: m[1].trim(), reading: m[2].trim(), meaning: m[3].trim() });
+      } else {
+        // Fallback: try word – meaning (no reading)
+        const m2 = item.match(/^(.+?)\s*[–—-]\s*(.+)$/);
+        if (m2) {
+          results.push({ word: m2[1].trim(), reading: '', meaning: m2[2].trim() });
+        }
+      }
+    }
+    return results;
+  }
+
+  /** Generate all flashcard entries from selected kanji */
+  function tfcGenerateCards() {
+    tfcCards = [];
+    const sorted = [...tfcSelectedIdxs].sort((a, b) => a - b);
+
+    for (const idx of sorted) {
+      const k = KANJI[idx];
+
+      // Add the parent kanji itself as a card
+      tfcCards.push({
+        word: k.char,
+        reading: `音: ${k.on} / 訓: ${k.kun}`,
+        meaning: k.meaning,
+        parentChar: k.char,
+        parentN: k.n,
+        type: 'parent'
+      });
+
+      // Parse on_ex examples
+      const onExamples = parseExamples(k.on_ex);
+      for (const ex of onExamples) {
+        tfcCards.push({
+          word: ex.word,
+          reading: ex.reading,
+          meaning: ex.meaning,
+          parentChar: k.char,
+          parentN: k.n,
+          type: 'on_ex'
+        });
+      }
+
+      // Parse kun_ex examples
+      const kunExamples = parseExamples(k.kun_ex);
+      for (const ex of kunExamples) {
+        tfcCards.push({
+          word: ex.word,
+          reading: ex.reading,
+          meaning: ex.meaning,
+          parentChar: k.char,
+          parentN: k.n,
+          type: 'kun_ex'
+        });
+      }
+    }
+
+    tfcOriginalOrder = [...tfcCards];
+    return tfcCards;
+  }
+
+  /** Build Tes Flashcard kanji selector */
+  function tfcBuildSelector() {
+    const selector = $('tfc-kanji-selector');
+    const groupBtns = $('tfc-group-btns');
+    if (!selector) return;
+
+    // Default: no kanji selected
+    tfcSelectedIdxs.clear();
+
+    selector.innerHTML = KANJI.map((k, i) => `
+      <div class="ks-tile" id="tfc-kst-${i}" data-idx="${i}" title="${k.meaning}">
+        <span class="ks-tile-char">${k.char}</span>
+        <span class="ks-tile-num">${k.n}</span>
+      </div>`).join('');
+
+    selector.querySelectorAll('.ks-tile').forEach(tile => {
+      tile.addEventListener('click', function() {
+        const i = parseInt(this.dataset.idx);
+        tfcToggleKanji(i);
+      });
+    });
+
+    // Group buttons
+    if (groupBtns) {
+      const groups = [];
+      for (let i = 0; i < KANJI.length; i += 20) {
+        const end = Math.min(i + 20, KANJI.length);
+        groups.push({ start: i, end: end, label: `${i + 1}\u2013${end}` });
+      }
+      groupBtns.innerHTML = groups.map((g, gi) =>
+        `<button class="group-btn" data-start="${g.start}" data-end="${g.end}">${g.label}</button>`
+      ).join('');
+
+      groupBtns.querySelectorAll('.group-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          groupBtns.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          tfcSelectGroup(parseInt(this.dataset.start), parseInt(this.dataset.end));
+        });
+      });
+    }
+
+    tfcUpdateSelCount();
+  }
+
+  function tfcToggleKanji(i) {
+    const tile = $('tfc-kst-' + i);
+    if (tfcSelectedIdxs.has(i)) {
+      tfcSelectedIdxs.delete(i);
+      if (tile) tile.classList.remove('selected');
+    } else {
+      tfcSelectedIdxs.add(i);
+      if (tile) tile.classList.add('selected');
+    }
+    tfcUpdateSelCount();
+  }
+
+  function tfcSelectGroup(start, end) {
+    tfcSelectedIdxs.clear();
+    KANJI.forEach((k, i) => {
+      const tile = $('tfc-kst-' + i);
+      if (i >= start && i < end) {
+        tfcSelectedIdxs.add(i);
+        if (tile) tile.classList.add('selected');
+      } else {
+        if (tile) tile.classList.remove('selected');
+      }
+    });
+    tfcUpdateSelCount();
+  }
+
+  function tfcSelectAll() {
+    KANJI.forEach((_, i) => {
+      tfcSelectedIdxs.add(i);
+      const el = $('tfc-kst-' + i);
+      if (el) el.classList.add('selected');
+    });
+    tfcUpdateSelCount();
+  }
+
+  function tfcClearAll() {
+    tfcSelectedIdxs.clear();
+    KANJI.forEach((_, i) => {
+      const el = $('tfc-kst-' + i);
+      if (el) el.classList.remove('selected');
+    });
+    tfcUpdateSelCount();
+  }
+
+  function tfcUpdateSelCount() {
+    const label = $('tfc-sel-count');
+    if (label) label.textContent = `${tfcSelectedIdxs.size} dipilih`;
+  }
+
+  /** Start the Tes Flashcard session */
+  function tfcStart() {
+    if (tfcSelectedIdxs.size === 0) {
+      alert('Pilih minimal 1 kanji dulu!');
+      return;
+    }
+
+    tfcGenerateCards();
+    if (tfcCards.length === 0) {
+      alert('Tidak ada kartu yang bisa dibuat dari kanji yang dipilih.');
+      return;
+    }
+
+    tfcIndex = 0;
+    tfcFlipped = false;
+    tfcShuffled = false;
+    tfcResults = {};
+
+    // Reset shuffle toggle
+    const shuffleToggle = $('tfc-shuffle-toggle');
+    if (shuffleToggle) shuffleToggle.checked = false;
+    const shuffleLabel = $('tfc-shuffle-label');
+    if (shuffleLabel) shuffleLabel.textContent = 'Acak: OFF';
+
+    tfcShowView('active');
+    tfcUpdateCard();
+  }
+
+  /** Show specific view in Tes Flashcard: setup | active | result */
+  function tfcShowView(view) {
+    const setup = $('tfc-setup');
+    const active = $('tfc-active');
+    const result = $('tfc-result');
+    if (setup) setup.style.display = (view === 'setup') ? '' : 'none';
+    if (active) active.style.display = (view === 'active') ? '' : 'none';
+    if (result) result.style.display = (view === 'result') ? '' : 'none';
+  }
+
+  /** Update the current flashcard display */
+  function tfcUpdateCard() {
+    if (tfcCards.length === 0) return;
+    const card = tfcCards[tfcIndex];
+
+    // Counter
+    const cur = $('tfc-current');
+    const tot = $('tfc-total');
+    if (cur) cur.textContent = tfcIndex + 1;
+    if (tot) tot.textContent = tfcCards.length;
+
+    // Progress bar
+    const prog = $('tfc-progress');
+    if (prog) prog.style.width = ((tfcIndex + 1) / tfcCards.length * 100) + '%';
+
+    // Front
+    const front = $('tfc-card-front');
+    const back = $('tfc-card-back');
+    const sourceEl = $('tfc-card-source');
+    const wordEl = $('tfc-card-word');
+
+    const typeLabel = card.type === 'parent' ? `Kanji Induk #${card.parentN}` :
+                      card.type === 'on_ex' ? `Contoh On'yomi dari ${card.parentChar}` :
+                      `Contoh Kun'yomi dari ${card.parentChar}`;
+    if (sourceEl) sourceEl.textContent = typeLabel;
+    if (wordEl) wordEl.textContent = card.word;
+
+    // Back
+    const backWord = $('tfc-back-word');
+    const backReading = $('tfc-back-reading');
+    const backMeaning = $('tfc-back-meaning');
+    const backParent = $('tfc-back-parent');
+
+    if (backWord) backWord.textContent = card.word;
+    if (backReading) backReading.textContent = card.reading || '—';
+    if (backMeaning) backMeaning.textContent = card.meaning;
+    if (backParent) backParent.textContent = `Kanji induk: ${card.parentChar} (No.${card.parentN})`;
+
+    // Reset flip
+    tfcFlipped = false;
+    if (front) front.style.display = 'flex';
+    if (back) back.style.display = 'none';
+
+    // Apply result status styling
+    const status = tfcResults[tfcIndex] || null;
+    if (front) {
+      front.classList.remove('hafal', 'belum');
+      if (status) front.classList.add(status);
+    }
+    if (back) {
+      back.classList.remove('hafal', 'belum');
+      if (status) back.classList.add(status);
+    }
+
+    // Update pills
+    tfcUpdatePills();
+  }
+
+  /** Flip the test flashcard */
+  function tfcFlipCard() {
+    tfcFlipped = !tfcFlipped;
+    const front = $('tfc-card-front');
+    const back = $('tfc-card-back');
+    if (tfcFlipped) {
+      if (front) front.style.display = 'none';
+      if (back) back.style.display = 'flex';
+    } else {
+      if (front) front.style.display = 'flex';
+      if (back) back.style.display = 'none';
+    }
+  }
+
+  function tfcPrev() { if (tfcIndex > 0) { tfcIndex--; tfcUpdateCard(); } }
+  function tfcNext() { if (tfcIndex < tfcCards.length - 1) { tfcIndex++; tfcUpdateCard(); } }
+
+  /** Mark current card as hafal */
+  function tfcMarkHafal() {
+    tfcResults[tfcIndex] = 'hafal';
+    tfcUpdateCard();
+    // Auto-advance
+    if (tfcIndex < tfcCards.length - 1) {
+      setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
+    } else {
+      // All cards done? Check if all have been marked
+      tfcCheckComplete();
+    }
+  }
+
+  /** Mark current card as belum hafal */
+  function tfcMarkBelum() {
+    tfcResults[tfcIndex] = 'belum';
+    tfcUpdateCard();
+    // Auto-advance
+    if (tfcIndex < tfcCards.length - 1) {
+      setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
+    } else {
+      tfcCheckComplete();
+    }
+  }
+
+  /** Check if all cards have been marked, show result if so */
+  function tfcCheckComplete() {
+    const marked = Object.keys(tfcResults).length;
+    if (marked >= tfcCards.length) {
+      setTimeout(() => tfcShowResult(), 500);
+    }
+  }
+
+  /** Update hafal/belum pills */
+  function tfcUpdatePills() {
+    let hafal = 0, belum = 0;
+    for (const key in tfcResults) {
+      if (tfcResults[key] === 'hafal') hafal++;
+      else if (tfcResults[key] === 'belum') belum++;
+    }
+    const pillH = $('tfc-pill-hafal');
+    const pillB = $('tfc-pill-belum');
+    if (pillH) pillH.textContent = `\u2713 ${hafal} Hafal`;
+    if (pillB) pillB.textContent = `\u2717 ${belum} Belum`;
+  }
+
+  /** Toggle shuffle ON/OFF */
+  function tfcToggleShuffle() {
+    const toggle = $('tfc-shuffle-toggle');
+    const label = $('tfc-shuffle-label');
+    tfcShuffled = toggle ? toggle.checked : false;
+
+    if (label) label.textContent = tfcShuffled ? 'Acak: ON' : 'Acak: OFF';
+
+    if (tfcShuffled) {
+      // Shuffle cards (Fisher-Yates)
+      for (let i = tfcCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tfcCards[i], tfcCards[j]] = [tfcCards[j], tfcCards[i]];
+      }
+      // Remap results to follow shuffled order (reset since mapping is complex)
+      tfcResults = {};
+    } else {
+      // Restore original order
+      tfcCards = [...tfcOriginalOrder];
+      tfcResults = {};
+    }
+
+    tfcIndex = 0;
+    tfcUpdateCard();
+  }
+
+  /** Show test flashcard result */
+  function tfcShowResult() {
+    tfcShowView('result');
+
+    let hafal = 0, belum = 0;
+    for (const key in tfcResults) {
+      if (tfcResults[key] === 'hafal') hafal++;
+      else belum++;
+    }
+    const total = hafal + belum;
+    const pct = total > 0 ? Math.round(hafal / total * 100) : 0;
+
+    const ringFill = $('tfc-ring-fill');
+    const ringPct = $('tfc-ring-pct');
+    const rsHafal = $('tfc-rs-hafal');
+    const rsBelum = $('tfc-rs-belum');
+    const rsTotal = $('tfc-rs-total');
+
+    setTimeout(() => {
+      if (ringFill) ringFill.style.strokeDashoffset = 377 - (377 * pct / 100);
+      if (ringPct) ringPct.textContent = pct + '%';
+    }, 100);
+
+    if (rsHafal) rsHafal.textContent = hafal;
+    if (rsBelum) rsBelum.textContent = belum;
+    if (rsTotal) rsTotal.textContent = total;
+
+    // List belum hafal cards
+    const belumList = $('tfc-belum-list');
+    if (belumList) {
+      const belumCards = [];
+      for (const key in tfcResults) {
+        if (tfcResults[key] === 'belum') {
+          belumCards.push(tfcCards[parseInt(key)]);
+        }
+      }
+
+      if (belumCards.length > 0) {
+        belumList.innerHTML = `<h3>Belum Hafal (${belumCards.length})</h3>` +
+          belumCards.map(c => `
+            <div class="wrong-item">
+              <div class="w-kanji">${c.word}</div>
+              <div class="w-info">
+                <div class="w-meaning">${c.meaning}</div>
+                <div class="w-reading">${c.reading}</div>
+                <div class="w-wrong-ans">Dari: ${c.parentChar} (No.${c.parentN})</div>
+              </div>
+            </div>`).join('');
+      } else {
+        belumList.innerHTML = '<p class="text-center" style="color:var(--green);font-size:1.1rem;padding:16px 0;">\u25C6 Semua sudah hafal!</p>';
+      }
+    }
+  }
+
+  /** Quit test flashcard */
+  function tfcQuit() {
+    tfcShowView('setup');
+  }
+
+  /** Retry test flashcard */
+  function tfcRetry() {
+    tfcIndex = 0;
+    tfcFlipped = false;
+    tfcResults = {};
+    if (!tfcShuffled) {
+      tfcCards = [...tfcOriginalOrder];
+    }
+    tfcShowView('active');
+    tfcUpdateCard();
+  }
+
+  /** Bind Tes Flashcard events */
+  function tfcBindEvents() {
+    $('tfc-select-all')?.addEventListener('click', tfcSelectAll);
+    $('tfc-clear-all')?.addEventListener('click', tfcClearAll);
+    $('tfc-start-btn')?.addEventListener('click', tfcStart);
+    $('tfc-card')?.addEventListener('click', tfcFlipCard);
+    $('tfc-flip-btn')?.addEventListener('click', tfcFlipCard);
+    $('tfc-prev')?.addEventListener('click', tfcPrev);
+    $('tfc-next')?.addEventListener('click', tfcNext);
+    $('tfc-btn-hafal')?.addEventListener('click', tfcMarkHafal);
+    $('tfc-btn-belum')?.addEventListener('click', tfcMarkBelum);
+    $('tfc-shuffle-toggle')?.addEventListener('change', tfcToggleShuffle);
+    $('tfc-quit-btn')?.addEventListener('click', tfcQuit);
+    $('tfc-retry-btn')?.addEventListener('click', tfcRetry);
+    $('tfc-back-btn')?.addEventListener('click', tfcQuit);
+  }
+
 
   // ── PUBLIC API ─────────────────────────────────────────────────────────────
   // Expose methods that may be needed externally (for debugging)
@@ -1052,7 +1508,9 @@ const App = (function() {
     filterList,
     clearProgress,
     startSRSReview,
-    toggleMiniGrid
+    toggleMiniGrid,
+    tfcStart,
+    tfcQuit
   };
 
 })();

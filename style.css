@@ -1487,3 +1487,249 @@ header {
 .text-center { text-align: center; }
 .mt-4 { margin-top: 4px; }
 .hidden { display: none; }
+
+
+
+/* ── TES FLASHCARD ── */
+.tfc-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tfc-stats-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tfc-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tfc-counter {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.tfc-counter span {
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.tfc-shuffle-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-label {
+  font-size: 0.78rem;
+  color: var(--ink2);
+  font-weight: 500;
+}
+
+/* Toggle switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 22px;
+  transition: 0.3s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 2px;
+  bottom: 2px;
+  background: var(--ink2);
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--red-bg);
+  border-color: var(--red);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+  background: var(--red);
+}
+
+/* Card */
+.tfc-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 16px auto;
+}
+
+.tfc-card {
+  width: 100%;
+  cursor: pointer;
+  min-height: 260px;
+}
+
+.tfc-card-front,
+.tfc-card-back {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  text-align: center;
+}
+
+.tfc-card-source {
+  font-size: 0.68rem;
+  color: var(--card-muted);
+  background: #f0ebe0;
+  padding: 2px 10px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
+}
+
+.tfc-card-word {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 4.5rem;
+  line-height: 1.2;
+  color: var(--card-ink);
+  margin: 12px 0;
+  word-break: break-all;
+}
+
+.tfc-card-hint {
+  font-size: 0.78rem;
+  color: var(--card-muted);
+  margin-top: 14px;
+  opacity: 0.7;
+}
+
+.tfc-card-word-back {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 3rem;
+  color: var(--card-ink);
+  margin-bottom: 10px;
+}
+
+.tfc-back-reading {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #c0392b;
+  margin-bottom: 6px;
+}
+
+.tfc-back-meaning {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--card-ink);
+  margin-bottom: 12px;
+}
+
+.tfc-back-parent {
+  font-size: 0.75rem;
+  color: var(--card-muted);
+  background: #f0ebe0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+/* Actions */
+.tfc-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tfc-btn-belum {
+  flex: 1;
+  background: var(--red-bg) !important;
+  border-color: var(--red) !important;
+  color: var(--red) !important;
+  font-weight: 700 !important;
+}
+
+.tfc-btn-belum:hover {
+  background: #3a1a18 !important;
+}
+
+.tfc-btn-hafal {
+  flex: 1;
+  background: var(--green-bg) !important;
+  border-color: var(--green) !important;
+  color: var(--green) !important;
+  font-weight: 700 !important;
+}
+
+.tfc-btn-hafal:hover {
+  background: #1a3018 !important;
+}
+
+/* Status indicators on cards */
+.tfc-card-front.hafal {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2), 0 4px 32px rgba(0,0,0,0.5);
+}
+
+.tfc-card-front.belum {
+  border-color: var(--red);
+  box-shadow: 0 0 0 2px rgba(217, 79, 61, 0.2), 0 4px 32px rgba(0,0,0,0.5);
+}
+
+.tfc-card-back.hafal {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2), 0 4px 32px rgba(0,0,0,0.5);
+}
+
+.tfc-card-back.belum {
+  border-color: var(--red);
+  box-shadow: 0 0 0 2px rgba(217, 79, 61, 0.2), 0 4px 32px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 480px) {
+  .tfc-card-word { font-size: 3rem; }
+  .tfc-card-word-back { font-size: 2.2rem; }
+  .tfc-actions { flex-direction: column; }
+}
