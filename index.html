@@ -19,7 +19,6 @@
     <button class="tab-btn" data-tab="test-fc">Tes FC</button>
     <button class="tab-btn" data-tab="quiz">Kuis</button>
     <button class="tab-btn" data-tab="list">Daftar</button>
-    <button class="tab-btn" data-tab="progress">Progress</button>
   </nav>
 
   <div class="main">
@@ -373,29 +372,35 @@
     </section>
 
 
-    <!-- ===== LIST SECTION ===== -->
+    <!-- ===== LIST + PROGRESS SECTION (MERGED) ===== -->
     <section id="list" class="section">
       <div class="list-header">
+
+        <!-- Progress Summary Cards -->
+        <div class="prog-summary" id="prog-summary"></div>
+
+        <!-- Legend -->
+        <div class="list-legend">
+          <span class="list-legend-title">KETERANGAN WARNA:</span>
+          <span class="legend-item legend-default"><span class="legend-dot"></span> Belum Dilatih</span>
+          <span class="legend-item legend-lemah"><span class="legend-dot"></span> Lemah</span>
+          <span class="legend-item legend-sedang"><span class="legend-dot"></span> Sedang</span>
+          <span class="legend-item legend-kuasai"><span class="legend-dot"></span> Dikuasai</span>
+        </div>
+
+        <!-- Filter Row -->
         <div class="list-filter-row">
           <span class="list-filter-label">FILTER:</span>
           <button class="filter-btn active-filter" id="filter-all" data-filter="all">Semua (324)</button>
           <button class="filter-btn" id="filter-belum" data-filter="belum">Belum Dilatih</button>
-          <button class="filter-btn" id="filter-lemah" data-filter="lemah">Lemah (&lt;70%)</button>
-          <button class="filter-btn" id="filter-kuasai" data-filter="kuasai">Dikuasai (≥70%)</button>
+          <button class="filter-btn" id="filter-lemah" data-filter="lemah">Lemah</button>
+          <button class="filter-btn" id="filter-sedang" data-filter="sedang">Sedang</button>
+          <button class="filter-btn" id="filter-kuasai" data-filter="kuasai">Dikuasai</button>
         </div>
       </div>
       <div class="list-grid" id="list-grid"></div>
-    </section>
-
-    <!-- ===== PROGRESS SECTION ===== -->
-    <section id="progress" class="section">
-      <div class="progress-wrapper">
-        <h2>&#128202; Progress Belajar</h2>
-        <p>Rekap hasil kuis kamu untuk setiap kanji</p>
-        <div id="storage-status"></div>
-        <div class="prog-summary" id="prog-summary"></div>
-        <div id="prog-table"></div>
-        <button class="btn-reset" id="btn-reset-progress">&#10005; Reset Progress</button>
+      <div class="text-center" style="margin-top:20px;">
+        <button class="btn-reset" id="btn-reset-progress">&#10005; Reset Semua Progress</button>
       </div>
     </section>
 
