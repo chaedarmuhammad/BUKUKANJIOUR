@@ -1136,6 +1136,8 @@ const App = (function() {
       tfcCards.push({
         word: k.char,
         reading: `音: ${k.on} / 訓: ${k.kun}`,
+        readingOn: k.on,
+        readingKun: k.kun,
         meaning: k.meaning,
         parentChar: k.char,
         parentN: k.n,
@@ -1408,17 +1410,34 @@ const App = (function() {
       // Mode: Kata → Bacaan & Arti
       if (wordEl) wordEl.textContent = card.word;
       if (backWord) backWord.textContent = card.word;
-      if (backReading) backReading.textContent = card.reading || '—';
+      if (backReading) {
+        // For parent kanji, show on/kun with different colors
+        if (card.type === 'parent' && card.readingOn && card.readingKun) {
+          backReading.innerHTML = `<span style="color:#c0392b;font-weight:700;">音: ${card.readingOn}</span> <span style="color:var(--card-muted);font-size:0.9em;">/</span> <span style="color:#1a4a90;font-weight:700;">訓: ${card.readingKun}</span>`;
+        } else {
+          backReading.textContent = card.reading || '—';
+        }
+      }
       if (backMeaning) backMeaning.textContent = card.meaning;
     } else {
       // Mode: Bacaan & Arti → Kata
       if (wordEl) {
         // Show reading + meaning as the question
-        const displayReading = card.reading || '—';
-        wordEl.innerHTML = `<span style="font-size:2rem;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;color:#c0392b;">${displayReading}</span><br><span style="font-size:1.2rem;color:#1a1208;margin-top:8px;display:block;">${card.meaning}</span>`;
+        if (card.type === 'parent' && card.readingOn && card.readingKun) {
+          wordEl.innerHTML = `<span style="font-size:2rem;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;color:#c0392b;">音: ${card.readingOn}</span><br><span style="font-size:2rem;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;color:#1a4a90;">訓: ${card.readingKun}</span><br><span style="font-size:1.2rem;color:#1a1208;margin-top:8px;display:block;">${card.meaning}</span>`;
+        } else {
+          const displayReading = card.reading || '—';
+          wordEl.innerHTML = `<span style="font-size:2rem;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;color:#c0392b;">${displayReading}</span><br><span style="font-size:1.2rem;color:#1a1208;margin-top:8px;display:block;">${card.meaning}</span>`;
+        }
       }
       if (backWord) backWord.textContent = card.word;
-      if (backReading) backReading.textContent = card.reading || '—';
+      if (backReading) {
+        if (card.type === 'parent' && card.readingOn && card.readingKun) {
+          backReading.innerHTML = `<span style="color:#c0392b;font-weight:700;">音: ${card.readingOn}</span> <span style="color:var(--card-muted);font-size:0.9em;">/</span> <span style="color:#1a4a90;font-weight:700;">訓: ${card.readingKun}</span>`;
+        } else {
+          backReading.textContent = card.reading || '—';
+        }
+      }
       if (backMeaning) backMeaning.textContent = card.meaning;
     }
     if (backParent) backParent.textContent = `Kanji induk: ${card.parentChar} (No.${card.parentN})`;
