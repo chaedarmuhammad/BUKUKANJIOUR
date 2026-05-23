@@ -1521,27 +1521,28 @@ const App = (function() {
         tfcAppendSrsCards();
       } else {
         // All done! Show result automatically
-        setTimeout(() => tfcShowResult(), 500);
+        setTimeout(() => tfcShowResult(), 400);
       }
-    } else {
-      // Auto-advance to next unmarked card (search forward only, then wrap)
+      return; // IMPORTANT: stop here, don't auto-advance
+    }
+
+    // Not all marked — find next unmarked card
+    // Search forward from current position
+    let nextIdx = -1;
+    for (let i = tfcIndex + 1; i < tfcCards.length; i++) {
+      if (!tfcResults[i]) { nextIdx = i; break; }
+    }
+    // If nothing forward, wrap around from beginning
+    if (nextIdx === -1) {
+      for (let i = 0; i < tfcIndex; i++) {
+        if (!tfcResults[i]) { nextIdx = i; break; }
+      }
+    }
+    // If found an unmarked card, go to it after short delay
+    if (nextIdx >= 0 && nextIdx < tfcCards.length) {
       setTimeout(() => {
-        // Search forward from current position
-        let nextIdx = -1;
-        for (let i = tfcIndex + 1; i < tfcCards.length; i++) {
-          if (!tfcResults[i]) { nextIdx = i; break; }
-        }
-        // If nothing forward, wrap around from beginning
-        if (nextIdx === -1) {
-          for (let i = 0; i < tfcIndex; i++) {
-            if (!tfcResults[i]) { nextIdx = i; break; }
-          }
-        }
-        // If found an unmarked card, go to it
-        if (nextIdx >= 0 && nextIdx < tfcCards.length) {
-          tfcIndex = nextIdx;
-          tfcUpdateCard();
-        }
+        tfcIndex = nextIdx;
+        tfcUpdateCard();
       }, 300);
     }
   }
