@@ -250,7 +250,7 @@ const App = (function() {
     DOM.cardNumFront.textContent = `No. ${k.n}`;
     DOM.kanjiBackChar.textContent = k.char;
     DOM.kanjiBackMeaning.textContent = k.meaning;
-    DOM.kanjiBackId.textContent = `\u{1F1EE}\u{1F1E9} ${k.id}`;
+    DOM.kanjiBackId.textContent = '';
     DOM.kanjiBackOn.textContent = k.on || '\u2014';
     DOM.kanjiBackKun.textContent = k.kun || '\u2014';
 
