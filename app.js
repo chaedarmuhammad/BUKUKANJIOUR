@@ -1332,33 +1332,45 @@ const App = (function() {
   /** Mark current card as hafal */
   function tfcMarkHafal() {
     tfcResults[tfcIndex] = 'hafal';
+    // Record SRS progress: hafal = correct
+    const card = tfcCards[tfcIndex];
+    if (card && card.parentN) {
+      recordProgress(card.parentN, true);
+    }
     tfcUpdateCard();
-    // Auto-advance
-    if (tfcIndex < tfcCards.length - 1) {
+    tfcCheckComplete();
+    // Auto-advance if not complete
+    if (Object.keys(tfcResults).length < tfcCards.length && tfcIndex < tfcCards.length - 1) {
       setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
-    } else {
-      // All cards done? Check if all have been marked
-      tfcCheckComplete();
     }
   }
 
   /** Mark current card as belum hafal */
   function tfcMarkBelum() {
     tfcResults[tfcIndex] = 'belum';
+    // Record SRS progress: belum = wrong
+    const card = tfcCards[tfcIndex];
+    if (card && card.parentN) {
+      recordProgress(card.parentN, false);
+    }
     tfcUpdateCard();
-    // Auto-advance
-    if (tfcIndex < tfcCards.length - 1) {
+    tfcCheckComplete();
+    // Auto-advance if not complete
+    if (Object.keys(tfcResults).length < tfcCards.length && tfcIndex < tfcCards.length - 1) {
       setTimeout(() => { tfcIndex++; tfcUpdateCard(); }, 300);
-    } else {
-      tfcCheckComplete();
     }
   }
 
-  /** Check if all cards have been marked, show result if so */
+  /** Check if all cards have been marked, show finish button or auto-finish */
   function tfcCheckComplete() {
     const marked = Object.keys(tfcResults).length;
+    const finishBtn = $('tfc-finish-btn');
     if (marked >= tfcCards.length) {
-      setTimeout(() => tfcShowResult(), 500);
+      // Show finish button and auto-navigate to result after short delay
+      if (finishBtn) finishBtn.style.display = 'block';
+      setTimeout(() => tfcShowResult(), 800);
+    } else {
+      if (finishBtn) finishBtn.style.display = 'none';
     }
   }
 
@@ -1487,6 +1499,7 @@ const App = (function() {
     $('tfc-quit-btn')?.addEventListener('click', tfcQuit);
     $('tfc-retry-btn')?.addEventListener('click', tfcRetry);
     $('tfc-back-btn')?.addEventListener('click', tfcQuit);
+    $('tfc-finish-now')?.addEventListener('click', tfcShowResult);
   }
 
 
