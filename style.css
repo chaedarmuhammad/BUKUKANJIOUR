@@ -322,6 +322,74 @@ header {
 .example-block .ex-on { color: #a02820; display: block; }
 .example-block .ex-kun { color: #1a4a90; display: block; }
 
+/* ── FORMATTED EXAMPLE SECTIONS (On/Kun per line) ── */
+.ex-section {
+  margin-bottom: 10px;
+}
+.ex-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.ex-section-on .ex-section-label {
+  color: #a02820;
+  background: rgba(160, 40, 32, 0.08);
+}
+.ex-section-kun .ex-section-label {
+  color: #1a4a90;
+  background: rgba(26, 74, 144, 0.08);
+}
+.ex-items {
+  padding-left: 4px;
+}
+.ex-item {
+  padding: 3px 0;
+  line-height: 1.7;
+  border-bottom: 1px dashed rgba(0,0,0,0.06);
+}
+.ex-item:last-child {
+  border-bottom: none;
+}
+.ex-word-on {
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #a02820;
+}
+.ex-word-kun {
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #1a4a90;
+}
+.ex-reading {
+  color: #6a6058;
+  font-size: 0.75rem;
+}
+.ex-meaning {
+  color: #4a4038;
+  font-size: 0.75rem;
+  margin-left: 2px;
+}
+.ex-meaning::before {
+  content: '— ';
+  color: #bbb;
+}
+
+/* ── KANJI HIGHLIGHT IN SENTENCE ── */
+.sentence-kanji-highlight {
+  color: #a02820;
+  font-weight: 700;
+  background: rgba(160, 40, 32, 0.07);
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
 
 /* ── SENTENCE BLOCK (replaces inline style in card back) ── */
 .sentence-block {
@@ -1050,6 +1118,37 @@ header {
 
 .fb-on { color: var(--red); font-weight: 700; }
 .fb-kun { color: var(--blue); font-weight: 700; }
+
+/* Feedback panel: formatted examples (dark theme) */
+.feedback-body .ex-section {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--bg);
+}
+.feedback-body .ex-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.feedback-body .ex-section-on .ex-section-label { color: var(--red); background: var(--red-bg); }
+.feedback-body .ex-section-kun .ex-section-label { color: var(--blue); background: var(--blue-bg); }
+.feedback-body .ex-word-on { color: var(--red); font-weight: 700; font-size: 0.9rem; }
+.feedback-body .ex-word-kun { color: var(--blue); font-weight: 700; font-size: 0.9rem; }
+.feedback-body .ex-reading { color: var(--ink2); font-size: 0.8rem; }
+.feedback-body .ex-meaning { color: var(--muted); font-size: 0.8rem; }
+.feedback-body .ex-meaning::before { color: var(--border2); }
+.feedback-body .ex-item { border-bottom-color: var(--border); }
+.feedback-body .sentence-block {
+  background: var(--bg);
+  border-left-color: var(--red);
+}
+.feedback-body .sentence-jp { color: var(--ink); }
+.feedback-body .sentence-id { color: var(--muted); }
+.feedback-body .sentence-kanji-highlight {
+  color: var(--red);
+  background: var(--red-bg);
+}
 
 .next-q-wrap {
   display: none;
