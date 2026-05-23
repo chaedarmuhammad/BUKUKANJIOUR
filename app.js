@@ -320,23 +320,19 @@ const App = (function() {
     });
   }
 
+  // Active filter state for combined filtering (Quiz)
+  let quizActiveGroup = null;    // {start, end} or null (all)
+  let quizActiveProgress = 'all'; // 'all', 'belum', 'lemah', 'sedang', 'kuasai'
+
   function selectGroup(start, end) {
-    selectedIdxs.clear();
-    KANJI.forEach((k, i) => {
-      const tile = $('kst-' + i);
-      if (i >= start && i < end) {
-        selectedIdxs.add(i);
-        if (tile) tile.classList.add('selected');
-      } else {
-        if (tile) tile.classList.remove('selected');
-      }
-    });
-    updateSelCount();
+    quizActiveGroup = { start, end };
+    applyQuizCombinedFilter();
   }
 
   function selectRecent(n) {
     const start = Math.max(0, KANJI.length - n);
-    selectGroup(start, KANJI.length);
+    quizActiveGroup = { start, end: KANJI.length };
+    applyQuizCombinedFilter();
   }
 
   /** Build the kanji selector grid for quiz setup */
@@ -379,6 +375,14 @@ const App = (function() {
   }
 
   function selectAllKanji() {
+    quizActiveGroup = null;
+    quizActiveProgress = 'all';
+    // Reset filter UI
+    $$('.qfilter-btn').forEach(b => b.classList.remove('active-qfilter'));
+    const allBtn = $('qf-all');
+    if (allBtn) allBtn.classList.add('active-qfilter');
+    resetGroupBtnStyles();
+
     KANJI.forEach((_, i) => {
       selectedIdxs.add(i);
       const el = $('kst-' + i);
@@ -388,6 +392,8 @@ const App = (function() {
   }
 
   function clearAllKanji() {
+    quizActiveGroup = null;
+    quizActiveProgress = 'all';
     selectedIdxs.clear();
     KANJI.forEach((_, i) => {
       const el = $('kst-' + i);
@@ -449,20 +455,36 @@ const App = (function() {
     const btn = $('qf-' + type);
     if (btn) btn.classList.add('active-qfilter');
 
+    quizActiveProgress = type;
+    applyQuizCombinedFilter();
+  }
+
+  /** Apply combined group + progress filter for Quiz */
+  function applyQuizCombinedFilter() {
+    selectedIdxs.clear();
     KANJI.forEach((k, i) => {
       const tile = $('kst-' + i);
       if (!tile) return;
-      const p = progressData[k.n];
-      const level = getMasteryLevel(p);
 
-      let include = false;
-      if (type === 'all') include = true;
-      else if (type === 'belum') include = (level === null);
-      else if (type === 'lemah') include = (level === 'lemah');
-      else if (type === 'sedang') include = (level === 'sedang');
-      else if (type === 'kuasai') include = (level === 'kuasai');
+      // Check group filter
+      let inGroup = true;
+      if (quizActiveGroup) {
+        inGroup = (i >= quizActiveGroup.start && i < quizActiveGroup.end);
+      }
 
-      if (include) {
+      // Check progress filter
+      let inProgress = true;
+      if (quizActiveProgress !== 'all') {
+        const p = progressData[k.n];
+        const level = getMasteryLevel(p);
+        if (quizActiveProgress === 'belum') inProgress = (level === null);
+        else if (quizActiveProgress === 'lemah') inProgress = (level === 'lemah');
+        else if (quizActiveProgress === 'sedang') inProgress = (level === 'sedang');
+        else if (quizActiveProgress === 'kuasai') inProgress = (level === 'kuasai');
+      }
+
+      // AND logic: must match both filters
+      if (inGroup && inProgress) {
         selectedIdxs.add(i);
         tile.classList.add('selected');
       } else {
@@ -1169,21 +1191,25 @@ const App = (function() {
     tfcUpdateSelCount();
   }
 
+  // Active filter state for combined filtering (Tes FC)
+  let tfcActiveGroup = null;      // {start, end} or null (all)
+  let tfcActiveProgress = 'all';  // 'all', 'belum', 'lemah', 'sedang', 'kuasai'
+
   function tfcSelectGroup(start, end) {
-    tfcSelectedIdxs.clear();
-    KANJI.forEach((k, i) => {
-      const tile = $('tfc-kst-' + i);
-      if (i >= start && i < end) {
-        tfcSelectedIdxs.add(i);
-        if (tile) tile.classList.add('selected');
-      } else {
-        if (tile) tile.classList.remove('selected');
-      }
-    });
-    tfcUpdateSelCount();
+    tfcActiveGroup = { start, end };
+    applyTfcCombinedFilter();
   }
 
   function tfcSelectAll() {
+    tfcActiveGroup = null;
+    tfcActiveProgress = 'all';
+    // Reset filter UI
+    $$('[data-tfc-filter]').forEach(b => b.classList.remove('active-qfilter'));
+    const allBtn = $('tfc-qf-all');
+    if (allBtn) allBtn.classList.add('active-qfilter');
+    const groupBtns = $('tfc-group-btns');
+    if (groupBtns) groupBtns.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+
     KANJI.forEach((_, i) => {
       tfcSelectedIdxs.add(i);
       const el = $('tfc-kst-' + i);
@@ -1193,6 +1219,8 @@ const App = (function() {
   }
 
   function tfcClearAll() {
+    tfcActiveGroup = null;
+    tfcActiveProgress = 'all';
     tfcSelectedIdxs.clear();
     KANJI.forEach((_, i) => {
       const el = $('tfc-kst-' + i);
@@ -1219,20 +1247,36 @@ const App = (function() {
     const btn = $('tfc-qf-' + type);
     if (btn) btn.classList.add('active-qfilter');
 
+    tfcActiveProgress = type;
+    applyTfcCombinedFilter();
+  }
+
+  /** Apply combined group + progress filter for Tes FC */
+  function applyTfcCombinedFilter() {
+    tfcSelectedIdxs.clear();
     KANJI.forEach((k, i) => {
       const tile = $('tfc-kst-' + i);
       if (!tile) return;
-      const p = progressData[k.n];
-      const level = getMasteryLevel(p);
 
-      let include = false;
-      if (type === 'all') include = true;
-      else if (type === 'belum') include = (level === null);
-      else if (type === 'lemah') include = (level === 'lemah');
-      else if (type === 'sedang') include = (level === 'sedang');
-      else if (type === 'kuasai') include = (level === 'kuasai');
+      // Check group filter
+      let inGroup = true;
+      if (tfcActiveGroup) {
+        inGroup = (i >= tfcActiveGroup.start && i < tfcActiveGroup.end);
+      }
 
-      if (include) {
+      // Check progress filter
+      let inProgress = true;
+      if (tfcActiveProgress !== 'all') {
+        const p = progressData[k.n];
+        const level = getMasteryLevel(p);
+        if (tfcActiveProgress === 'belum') inProgress = (level === null);
+        else if (tfcActiveProgress === 'lemah') inProgress = (level === 'lemah');
+        else if (tfcActiveProgress === 'sedang') inProgress = (level === 'sedang');
+        else if (tfcActiveProgress === 'kuasai') inProgress = (level === 'kuasai');
+      }
+
+      // AND logic: must match both filters
+      if (inGroup && inProgress) {
         tfcSelectedIdxs.add(i);
         tile.classList.add('selected');
       } else {
