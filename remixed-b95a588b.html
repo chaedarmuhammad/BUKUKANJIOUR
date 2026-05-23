@@ -1,0 +1,2484 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漢字 Kanji Flashcard</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;700&family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap');
+
+  :root {
+    --bg:          #0f0e0d;
+    --bg2:         #1a1815;
+    --bg3:         #232018;
+    --surface:     #2a2620;
+    --surface2:    #32302a;
+    --ink:         #f0ece3;
+    --ink2:        #c8c0b0;
+    --muted:       #7a7468;
+    --border:      #3a3830;
+    --border2:     #4a4840;
+    --red:         #d94f3d;
+    --red-dim:     #8a2a20;
+    --red-bg:      #2a1a18;
+    --blue:        #4a8fd4;
+    --blue-bg:     #18202e;
+    --gold:        #c8960a;
+    --gold-bg:     #28220a;
+    --card-bg:     #fdf9f2;
+    --card-ink:    #1a1208;
+    --card-muted:  #6a6058;
+    --card-border: #e0d8c8;
+    --green:       #4caf50;
+    --green-bg:    #162018;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius:2px; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 28px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  header::before { content:none; }
+  .app-title { display:none; }
+  .app-subtitle {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    line-height: 2;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    gap: 0;
+  }
+  .tab-btn {
+    padding: 14px 24px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.8rem;
+    color: var(--muted);
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .tab-btn:hover:not(.active) { color: var(--ink2); }
+  .tab-btn.active {
+    color: var(--ink);
+    font-weight: 700;
+    border-bottom-color: var(--red);
+  }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 28px 20px;
+  }
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* ── CONTROLS ── */
+  .fc-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .fc-counter {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .fc-counter span { color: var(--ink); font-weight: 700; font-size: 1.2rem; }
+  .btn-group { display:flex; gap:8px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink2);
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--border2); color: var(--ink); background: var(--surface2); }
+  .btn.primary {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .btn.primary:hover { background: #c44030; border-color: #c44030; }
+
+  /* ── FLASHCARD ── */
+  .card-scene { perspective:1200px; width:100%; margin:0; cursor:pointer; }
+  .card-inner  { width:100%; height:auto; transition:none; }
+  .card-face {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 28px 32px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .card-back {
+    display: none;
+    background: var(--card-bg);
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding: 24px 28px;
+    border-radius: 20px;
+  }
+  .card-inner.flipped .card-back  { display:flex; }
+  .card-inner.flipped .card-face:not(.card-back) { display:none; }
+
+  .kanji-display {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 7rem;
+    line-height: 1;
+    color: var(--card-ink);
+    margin: 12px 0;
+  }
+  .card-number { font-size: 0.72rem; color: var(--card-muted); margin-bottom: 4px; }
+  .card-hint   { font-size: 0.78rem; color: var(--card-muted); margin-top: 14px; opacity:0.7; }
+
+  .kanji-back-char {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 2.6rem;
+    color: var(--red-dim);
+    margin-bottom: 4px;
+  }
+  .kanji-meaning    { font-size:1rem; font-weight:700; color:var(--card-ink); margin-bottom:1px; }
+  .kanji-meaning-id { font-size:0.7rem; color:var(--card-muted); margin-bottom:14px; }
+
+  .reading-block { display:flex; gap:24px; margin-bottom:14px; flex-wrap:wrap; }
+  .reading-group { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .reading-label { font-size:0.55rem; color:var(--card-muted); letter-spacing:0.1em; text-transform:uppercase; }
+  .reading-value { font-family:'Noto Serif JP',serif; font-size:1.1rem; font-weight:700; }
+  .reading-value.onyomi  { color:#c0392b; }
+  .reading-value.kunyomi { color:#1a4a90; }
+
+  .example-block {
+    font-size: 0.7rem;
+    background: #f5f0e6;
+    border-radius: 8px;
+    padding: 10px 14px;
+    line-height: 2;
+    word-break: break-word;
+    color: var(--card-muted);
+    width: 100%;
+  }
+  .example-block .ex-on  { color:#a02820; display:block; }
+  .example-block .ex-kun { color:#1a4a90; display:block; }
+
+  /* ── CARD NAV ── */
+  .card-nav {
+    display:flex; justify-content:center; gap:12px;
+    align-items:center; margin-top:16px; margin-bottom:16px; width:100%;
+  }
+  .nav-btn {
+    width:44px; height:44px; border-radius:50%;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--ink2);
+    font-size: 0.9rem; cursor:pointer; transition:all 0.15s;
+  }
+  .nav-btn:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+
+  /* ── MINI GRID ── */
+  .kanji-grid-title { font-size:0.68rem; color:var(--muted); text-align:center; margin-bottom:10px; letter-spacing:0.1em; }
+  .kanji-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; padding:4px 2px; max-width:520px; margin:0 auto; }
+  .kanji-thumb {
+    border: 1px solid var(--border);
+    border-radius: 6px; padding:6px 2px; text-align:center; cursor:pointer;
+    font-family:'Shippori Mincho',serif; font-size:1rem; color:var(--ink2);
+    background: var(--surface); transition:all 0.12s; line-height:1.2;
+  }
+  .kanji-thumb:hover { border-color:var(--red); color:var(--red); }
+  .kanji-thumb.current-thumb { border-color:var(--red); background:var(--red-bg); color:var(--red); }
+
+  /* ── QUIZ SETUP ── */
+  .quiz-setup-title { font-family:'Shippori Mincho',serif; font-size:1.5rem; color:var(--ink); margin-bottom:6px; }
+  .quiz-setup-sub   { font-size:0.82rem; color:var(--ink2); margin-bottom:20px; }
+  .quiz-section-label { font-size:0.62rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .mode-cards { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+  .mode-card {
+    border: 1px solid var(--border);
+    border-radius: 12px; padding:14px 16px; cursor:pointer;
+    transition:all 0.18s; background:var(--surface);
+    display:flex; align-items:center; gap:14px;
+  }
+  .mode-card:hover { border-color:var(--border2); }
+  .mode-card.selected { border-color:var(--red); background:var(--red-bg); }
+  .mode-card.selected::after { content:'✓'; margin-left:auto; color:var(--red); font-weight:700; }
+
+  /* ── KANJI SELECTOR ── */
+  .ks-tile {
+    border: 1px solid var(--border); border-radius:7px;
+    padding:6px 4px; text-align:center; cursor:pointer;
+    background:var(--surface); transition:all 0.12s;
+    user-select:none; opacity:0.4;
+    font-family:'Shippori Mincho',serif; font-size:1rem; color:var(--ink2);
+  }
+  .ks-tile:hover { opacity:0.75; }
+  .ks-tile.selected { opacity:1; border-color:var(--red); background:var(--red-bg); color:var(--red); }
+
+  /* ── QUIZ ACTIVE ── */
+  #quiz-active { display:none; }
+  #quiz.active #quiz-active.show { display:block; }
+
+
+  .quiz-score-bar { display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  .score-pill {
+    font-size:0.75rem; padding:3px 10px; border-radius:20px; font-weight:700; border:1px solid;
+  }
+  .score-pill.correct { background:var(--green-bg); border-color:var(--green); color:var(--green); }
+  .score-pill.wrong   { background:var(--red-bg);   border-color:var(--red);   color:var(--red); }
+  .score-pill.srs     { background:var(--gold-bg);  border-color:var(--gold);  color:var(--gold); }
+
+  .quiz-progress-bar { width:100%; height:3px; background:var(--border); border-radius:2px; margin-bottom:12px; overflow:hidden; }
+  .quiz-progress-fill { height:100%; background:var(--red); border-radius:2px; transition:width 0.3s; }
+
+  .quiz-soal-num { font-size:0.68rem; color:var(--muted); text-align:right; margin-bottom:6px; }
+  .quiz-prompt { font-size:0.68rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:14px; }
+
+  .quiz-question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px 24px;
+    text-align: center;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+  }
+  .quiz-kanji-big { font-family:'Shippori Mincho',serif; font-size:6rem; line-height:1; color:var(--ink); }
+  .quiz-meaning-big { color:var(--muted); font-family:'Shippori Mincho',serif; font-size:1rem; margin-top:6px; }
+
+  .choices { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+  .choice-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 12px;
+    cursor: pointer;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    transition: all 0.15s;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .choice-btn:hover:not([disabled]) { border-color:var(--border2); background:var(--surface2); }
+  .choice-btn.correct { background:var(--green-bg); border-color:var(--green); color:var(--green); font-weight:700; }
+  .choice-btn.wrong   { background:var(--red-bg);   border-color:var(--red);   color:var(--red);   font-weight:700; }
+  .choice-btn[disabled] { cursor:default; }
+
+  /* ── FEEDBACK PANEL ── */
+  .feedback-panel { display:none; margin-top:16px; }
+  .feedback-panel.show { display:block; animation:fadeIn 0.25s ease; }
+  .feedback-header {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 16px; border-radius:10px 10px 0 0;
+    font-weight:700; font-size:0.88rem; letter-spacing:0.05em;
+  }
+  .correct-hdr { background:#1a3020; color:#4caf50; border:1px solid #2e5030; border-bottom:none; }
+  .wrong-hdr   { background:#2a1818; color:var(--red); border:1px solid var(--red-dim); border-bottom:none; }
+  .feedback-body {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:0 0 10px 10px; padding:16px;
+    display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start;
+  }
+  .fb-kanji {
+    font-family:'Shippori Mincho',serif; font-size:3.5rem; line-height:1;
+    color:var(--ink); padding-right:14px; border-right:1px solid var(--border);
+  }
+  .fb-info { font-size:0.8rem; line-height:2; color:var(--ink2); }
+  .fb-meaning { font-size:0.95rem; font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .fb-label { font-size:0.6rem; color:var(--muted); letter-spacing:0.08em; min-width:32px; display:inline-block; }
+  .fb-pill-on  { background:var(--red-bg); color:var(--red); border:1px solid var(--red-dim); padding:1px 8px; border-radius:4px; font-family:'Noto Serif JP',serif; font-weight:700; font-size:0.9rem; }
+  .fb-pill-kun { background:var(--blue-bg); color:var(--blue); border:1px solid #2a4080; padding:1px 8px; border-radius:4px; font-family:'Noto Serif JP',serif; font-weight:700; font-size:0.9rem; }
+  .fb-ex { margin-top:10px; padding:10px 12px; border-radius:6px; background:var(--bg); font-size:0.82rem; color:var(--ink2); line-height:2.2; }
+  .feedback-box { display:none; }
+  .fb-on  { color:var(--red);  font-weight:700; }
+  .fb-kun { color:var(--blue); font-weight:700; }
+
+  #next-q-btn { display:none; margin-top:14px; width:100%; }
+
+  /* ── RESULT ── */
+  #quiz-result { text-align:center; padding:20px; display:none; }
+  #quiz-result.show { display:block; }
+  .ring-wrap { position:relative; width:120px; height:120px; margin:0 auto 16px; }
+  #ring-fill { transition:stroke-dashoffset 1s ease; }
+  #ring-pct { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:1.5rem; font-weight:700; color:var(--ink); }
+
+  .wrong-log { margin-top:16px; text-align:left; }
+  .wrong-item {
+    display:flex; align-items:center; gap:10px;
+    padding:8px 12px; border-radius:8px;
+    background:var(--red-bg); border:1px solid var(--red-dim);
+    margin-bottom:6px; font-size:0.78rem; color:var(--ink2);
+  }
+  .wrong-kanji { font-family:'Shippori Mincho',serif; font-size:1.5rem; color:var(--red); }
+
+  /* ── DAFTAR ── */
+  .qfilter-btn {
+    font-size:0.7rem; padding:5px 12px;
+    border:1px solid var(--border); background:var(--surface);
+    border-radius:20px; cursor:pointer; font-family:inherit;
+    color:var(--muted); transition:all 0.15s;
+  }
+  .qfilter-btn:hover { border-color:var(--border2); color:var(--ink); }
+  .active-qfilter { background:var(--red) !important; color:#fff !important; border-color:var(--red) !important; }
+  /* Filter pill dots warna */
+  #qf-belum .dot { color: var(--muted); }
+  #qf-lemah .dot  { color: var(--red); }
+  #qf-sedang .dot { color: var(--gold); }
+  #qf-kuasai .dot { color: var(--green); }
+
+  .filter-btn {
+    font-size:0.68rem; padding:4px 12px;
+    border:1px solid var(--border); background:var(--surface);
+    border-radius:20px; cursor:pointer; font-family:inherit;
+    color:var(--muted); transition:all 0.15s;
+  }
+  .filter-btn:hover { border-color:var(--border2); color:var(--ink); }
+  .active-filter { background:var(--ink) !important; color:var(--bg) !important; border-color:var(--ink) !important; }
+
+  .list-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+    gap:8px; padding:4px 0;
+  }
+  .list-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+    transition: all 0.15s;
+    cursor: pointer;
+    position: relative;
+  }
+  .list-card:hover { border-color:var(--red); background:var(--surface2); }
+  .list-num     { font-size:0.55rem; color:var(--muted); margin-bottom:4px; }
+  .list-kanji   { font-family:'Shippori Mincho',serif; font-size:2rem; color:var(--ink); display:block; }
+  .list-meaning { font-size:0.68rem; color:var(--ink2); margin-top:5px; }
+
+  /* ── PROGRESS ── */
+  .ring-svg { transform:rotate(-90deg); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+  .card-scene { animation:fadeIn 0.35s ease; }
+  .choice-btn.correct { animation:pulse 0.25s ease; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width:480px) {
+    .tab-btn { padding:11px 14px; font-size:0.72rem; }
+    .kanji-display { font-size:5.5rem; }
+    .quiz-kanji-big { font-size:4.5rem; }
+    .choices { gap:8px; }
+    .choice-btn { padding:12px 8px; font-size:0.88rem; }
+    .main { padding:20px 14px; }
+    .card-face { padding:28px 18px 24px; }
+  }
+
+  #quiz-setup { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="app-title" style="display:none;"></div>
+  <div class="app-subtitle">Kanji<br>Flashcard &amp; Quiz</div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('flashcard')">Flashcard</button>
+  <button class="tab-btn" onclick="switchTab('quiz')">Kuis</button>
+  <button class="tab-btn" onclick="switchTab('list')">Daftar</button>
+  <button class="tab-btn" onclick="switchTab('progress')">Progress</button>
+</div>
+
+<div class="main">
+
+  <!-- ===== FLASHCARD ===== -->
+  <div id="flashcard" class="section active">
+    <div class="fc-controls">
+      <div class="fc-counter">Kartu <span id="fc-current">1</span> / <span id="fc-total">266</span></div>
+      <div class="btn-group">
+        <button class="btn" onclick="shuffleCards()">⇄ Acak</button>
+        <button class="btn" onclick="resetCards()">↩ Reset</button>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:480px;margin:0 auto;">
+
+      <div class="card-scene" id="card-scene" onclick="flipCard()">
+        <div class="card-inner" id="card-inner">
+          <div class="card-face">
+            <div class="card-number" id="card-num-front"></div>
+            <div class="kanji-display" id="kanji-front"></div>
+            <div class="card-hint">↕ Klik untuk lihat arti</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="kanji-back-char" id="kanji-back-char"></div>
+            <div class="kanji-meaning" id="kanji-back-meaning"></div>
+            <div class="kanji-meaning-id" id="kanji-back-id"></div>
+            <div class="reading-block">
+              <div class="reading-group">
+                <span class="reading-label">音読み On'yomi</span>
+                <span class="reading-value onyomi" id="kanji-back-on"></span>
+              </div>
+              <div class="reading-group">
+                <span class="reading-label">訓読み Kun'yomi</span>
+                <span class="reading-value kunyomi" id="kanji-back-kun"></span>
+              </div>
+            </div>
+            <div class="example-block" id="kanji-back-ex"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-nav">
+        <button class="nav-btn" id="prev-btn" onclick="prevCard()">◀</button>
+        <button class="btn primary" onclick="flipCard()" style="width:120px">Balik Kartu</button>
+        <button class="nav-btn" id="next-btn" onclick="nextCard()">▶</button>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;margin-top:4px;">
+      <button onclick="toggleMiniGrid()" id="mini-grid-btn" style="font-size:0.72rem;padding:4px 14px;border:1.5px solid var(--border);background:transparent;border-radius:20px;cursor:pointer;color:var(--muted);font-family:inherit;letter-spacing:0.05em;">▦ Tampilkan Navigator Kanji</button>
+    </div>
+    <div id="mini-grid-wrap" style="display:none;margin-top:10px;">
+      <div class="kanji-grid-title">— Klik kanji untuk loncat ke kartu tersebut —</div>
+      <div class="kanji-grid" id="kanji-grid"></div>
+    </div>
+  </div>
+
+  <!-- ===== QUIZ ===== -->
+  <div id="quiz" class="section">
+
+    <!-- SETUP -->
+    <div id="quiz-setup">
+      <div class="quiz-setup-card">
+        <h2>✏️ Uji Kemampuanmu</h2>
+        <p>Pilih mode dan kanji yang ingin diuji, lalu mulai!</p>
+
+        <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">MODE KUIS</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+          <div class="mode-card selected" data-mode="kanji-to-reading" onclick="selectMode(this)">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span class="mode-icon" style="font-size:1.8rem;min-width:52px;text-align:center;">漢→<span style="color:#c0392b">音</span><span style="color:#1a4a90">訓</span></span>
+              <div>
+                <span class="mode-name">Kanji → On + Kun</span>
+                <span class="mode-desc">Lihat kanji → pilih pasangan on+kun yang tepat.<br>Contoh: 牛 → <strong style="color:#c0392b">ギュウ</strong> · <strong style="color:#1a4a90">うし</strong></span>
+              </div>
+            </div>
+          </div>
+          <div class="mode-card" data-mode="reading-to-kanji" onclick="selectMode(this)">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span class="mode-icon" style="font-size:1.8rem;min-width:52px;text-align:center;"><span style="color:#c0392b">音</span><span style="color:#1a4a90">訓</span>→漢</span>
+              <div>
+                <span class="mode-name">On + Kun → Kanji</span>
+                <span class="mode-desc">Lihat on+kun → pilih kanji yang tepat.<br>Contoh: <strong style="color:#c0392b">ギュウ</strong> · <strong style="color:#1a4a90">うし</strong> → <strong>牛</strong></span>
+              </div>
+            </div>
+          </div>
+        </div></div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;margin-bottom:8px;">
+          <span style="font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">
+            PILIH KANJI YANG DIUJI
+            <span style="font-size:0.7rem;color:var(--sage);text-transform:none;letter-spacing:0;margin-left:6px;" id="sel-count-label">0 dipilih</span>
+          </span>
+          <div style="display:flex;gap:6px;">
+            <button onclick="selectAllKanji()" style="font-size:0.68rem;padding:2px 8px;border:1px solid var(--border);background:var(--surface);border-radius:4px;cursor:pointer;font-family:inherit;color:var(--ink2);">Pilih Semua</button>
+            <button onclick="clearAllKanji()" style="font-size:0.68rem;padding:2px 8px;border:1px solid var(--border);background:var(--surface);border-radius:4px;cursor:pointer;font-family:inherit;color:var(--ink2);">Hapus Semua</button>
+          </div>
+        </div>
+        <!-- Filter progress -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:0.62rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px;">FILTER BERDASARKAN PROGRESS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+            <button onclick="selectByProgress('all')" class="qfilter-btn active-qfilter" id="qf-all">Semua</button>
+            <button onclick="selectByProgress('belum')" class="qfilter-btn" id="qf-belum">○ Belum Dilatih</button>
+            <button onclick="selectByProgress('lemah')" class="qfilter-btn" id="qf-lemah">● Lemah (&lt;70%)</button>
+            <button onclick="selectByProgress('sedang')" class="qfilter-btn" id="qf-sedang">● Sedang (40–70%)</button>
+            <button onclick="selectByProgress('kuasai')" class="qfilter-btn" id="qf-kuasai">● Dikuasai (≥70%)</button>
+          </div>
+        </div>
+        <!-- Pilih per kelompok -->
+        <div style="margin-bottom:8px;">
+          <div style="font-size:0.62rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px;">PILIH CEPAT PER KELOMPOK</div>
+          <div id="group-btns" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;"></div>
+        </div>
+        <div id="kanji-selector" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:20px;max-height:220px;overflow-y:auto;padding:4px 2px;"></div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+          <input type="checkbox" id="srs-toggle" style="width:16px;height:16px;cursor:pointer;" checked>
+          <label for="srs-toggle" style="font-size:0.85rem;cursor:pointer;color:#e0d8c8;">
+            ↺ <strong>SRS aktif</strong> — kanji yang salah muncul lagi di akhir
+          </label>
+        </div>
+
+        <!-- SRS Review Banner -->
+        <div id="srs-due-banner" style="display:none;background:linear-gradient(135deg,#2a1a10,#1a2a10);border:1px solid #5a4a20;border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div>
+              <div style="font-size:0.72rem;color:#c8960a;font-weight:700;letter-spacing:0.08em;margin-bottom:3px;">◈ SRS REVIEW TERSEDIA</div>
+              <div id="srs-due-count" style="font-size:0.88rem;color:#e0d8c8;"></div>
+            </div>
+            <button onclick="startSRSReview()" class="btn primary" style="padding:8px 18px;font-size:0.85rem;white-space:nowrap;">↺ Mulai Review</button>
+          </div>
+        </div>
+
+        <button class="btn primary" style="width:100%;font-size:1rem;padding:13px;" onclick="startQuiz()">始め！ Mulai Kuis</button>
+      </div>
+
+    <!-- ACTIVE QUIZ -->
+    <div id="quiz-active" class="quiz-active">
+      <div class="quiz-topbar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="quiz-stat-row">
+          <span class="stat-pill correct-pill" id="pill-correct">✓ 0</span>
+          <span class="stat-pill wrong-pill" id="pill-wrong">✗ 0</span>
+          <span class="stat-pill srs-pill" id="pill-srs" style="display:none;">↺ 0</span>
+        </div>
+        <button class="btn" onclick="endQuiz()" style="font-size:0.75rem;padding:4px 14px;border-color:var(--red-dim);color:var(--red);">✕ Keluar Kuis</button>
+      </div>
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-progress"></div></div>
+      <div style="text-align:right;font-size:0.72rem;color:var(--muted);margin-bottom:18px;" id="quiz-q-num"></div>
+
+      <div class="quiz-question-card"><div class="quiz-question" id="quiz-question"></div></div>
+      <div id="answer-area"></div>
+
+      <div class="feedback-panel" id="feedback-panel">
+        <div class="feedback-header" id="feedback-header"></div>
+        <div class="feedback-body">
+          <div class="fb-kanji" id="fb-kanji"></div>
+          <div class="fb-info" id="fb-info"></div>
+        </div>
+      </div>
+
+      <div class="next-q-wrap" id="next-q-btn" style="display:none;">
+        <button class="btn gold" onclick="nextQuestion()" style="font-size:0.95rem;padding:10px 36px;">次へ Lanjut →</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="quiz-result" style="display:none;">
+      <div class="quiz-result">
+        <div style="font-size:0.75rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px;">結果 Hasil Kuis</div>
+        <div class="result-rings">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle class="ring-bg" cx="70" cy="70" r="60"/>
+            <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="60"
+              stroke-dasharray="377" stroke-dashoffset="377"/>
+          </svg>
+          <div class="ring-pct" id="ring-pct">0%</div>
+        </div>
+        <div class="result-grade" id="result-grade"></div>
+        <div class="result-stats">
+          <div class="result-stat rs-green"><span class="rs-num" id="rs-correct">0</span><span class="rs-label">Benar</span></div>
+          <div class="result-stat rs-red"><span class="rs-num" id="rs-wrong">0</span><span class="rs-label">Salah</span></div>
+          <div class="result-stat"><span class="rs-num" id="rs-total">0</span><span class="rs-label">Soal</span></div>
+        </div>
+        <div class="wrong-list" id="wrong-list"></div>
+        <div class="btn-group" style="justify-content:center;gap:12px;">
+          <button class="btn primary" onclick="startQuiz()">↺ Ulangi</button>
+          <button class="btn" onclick="endQuiz()">← Setup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LIST ===== -->
+  <div id="list" class="section">
+    <div style="padding:12px 16px 0;max-width:700px;margin:0 auto;">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center;">
+        <span style="font-size:0.7rem;color:var(--muted);letter-spacing:0.08em;">FILTER:</span>
+        <button onclick="filterList('all')" id="filter-all" class="filter-btn active-filter">Semua (166)</button>
+        <button onclick="filterList('belum')" id="filter-belum" class="filter-btn">Belum Dilatih</button>
+        <button onclick="filterList('lemah')" id="filter-lemah" class="filter-btn">Lemah (&lt;70%)</button>
+        <button onclick="filterList('kuasai')" id="filter-kuasai" class="filter-btn">Dikuasai (≥70%)</button>
+      </div>
+    </div>
+    <div class="list-grid" id="list-grid"></div>
+  </div>
+
+  <!-- ===== PROGRESS ===== -->
+  <div id="progress" class="section">
+    <div style="max-width:560px;margin:0 auto;padding:20px 16px;">
+      <h2 style="font-family:'Shippori Mincho',serif;font-size:1.4rem;margin-bottom:4px;color:var(--ink);">📊 Progress Belajar</h2>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:20px;">Rekap hasil kuis kamu untuk setiap kanji</p>
+      <div id="storage-status" style="font-size:0.72rem;padding:4px 10px;border-radius:4px;display:inline-block;margin-bottom:12px;"></div>
+
+      <!-- Summary bar -->
+      <div id="prog-summary" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:24px;"></div>
+
+      <!-- Per-kanji table -->
+      <div id="prog-table"></div>
+
+      <button onclick="clearProgress()" style="margin-top:20px;font-size:0.75rem;padding:6px 14px;border:1.5px solid var(--border);background:transparent;border-radius:4px;cursor:pointer;color:var(--muted);font-family:inherit;">✕ Reset Progress</button>
+    </div>
+  </div>
+
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  console.error('Global error:', msg, 'at line', line, col, err);
+  return false;
+};
+
+const KANJI = [
+  {n:1,  char:'山', on:'サン', kun:'やま', meaning:'Gunung', id:'Yama', on_id:'San',
+   on_ex:'山脈 (さんみゃく) – pegunungan', kun_ex:'山 (やま) – gunung',
+   sentence:'山にのぼるのがすきです。', sentence_id:'Saya suka mendaki gunung.'},
+  {n:2,  char:'川', on:'セン', kun:'かわ', meaning:'Sungai', id:'Kawa', on_id:'Sen',
+   on_ex:'河川 (かせん) – sungai (formal)', kun_ex:'川 (かわ) – sungai',
+   sentence:'この川はとてもきれいです。', sentence_id:'Sungai ini sangat indah.'},
+  {n:3,  char:'田', on:'デン', kun:'た', meaning:'Sawah / Ladang', id:'Ta', on_id:'Den',
+   on_ex:'田園 (でんえん) – pedesaan', kun_ex:'田んぼ (たんぼ) – sawah',
+   sentence:'田んぼでおこめをつくります。', sentence_id:'Kami menanam beras di sawah.'},
+  {n:4,  char:'日', on:'ニチ・ジツ', kun:'ひ・か', meaning:'Matahari / Hari', id:'Hi / Ka', on_id:'Nichi / Jitsu',
+   on_ex:'日曜日 (にちようび) – hari Minggu · 今日 (こんにち) – hari ini', kun_ex:'日 (ひ) – matahari · 二日 (ふつか) – tgl 2',
+   sentence:'きょうは日ようびです。', sentence_id:'Hari ini adalah hari Minggu.'},
+  {n:5,  char:'月', on:'ゲツ・ガツ', kun:'つき', meaning:'Bulan', id:'Tsuki', on_id:'Getsu / Gatsu',
+   on_ex:'月曜日 (げつようび) – hari Senin · 一月 (いちがつ) – Januari', kun_ex:'月 (つき) – bulan (di langit)',
+   sentence:'月がよぞらにかがやいています。', sentence_id:'Bulan bersinar di langit malam.'},
+  {n:6,  char:'火', on:'カ', kun:'ひ・ほ', meaning:'Api', id:'Hi / Ho', on_id:'Ka',
+   on_ex:'火曜日 (かようび) – Selasa', kun_ex:'火 (ひ) – api · 花火 (はなび) – kembang api',
+   sentence:'火はあつくてきけんです。', sentence_id:'Api itu panas dan berbahaya.'},
+  {n:7,  char:'水', on:'スイ', kun:'みず', meaning:'Air', id:'Mizu', on_id:'Sui',
+   on_ex:'水曜日 (すいようび) – hari Rabu · 水泳 (すいえい) – renang', kun_ex:'水 (みず) – air',
+   sentence:'まいにち水をはちはいのみます。', sentence_id:'Saya minum delapan gelas air setiap hari.'},
+  {n:8,  char:'木', on:'モク・ボク', kun:'き・こ', meaning:'Pohon / Kayu', id:'Ki / Ko', on_id:'Moku / Boku',
+   on_ex:'木曜日 (もくようび) – hari Kamis · 木材 (もくざい) – kayu bahan', kun_ex:'木 (き) – pohon · 木の葉 (このは) – daun pohon',
+   sentence:'こうえんにおおきな木があります。', sentence_id:'Ada pohon besar di taman.'},
+  {n:9,  char:'金', on:'キン・コン', kun:'かね・かな', meaning:'Emas / Uang / Logam', id:'Kane / Kana', on_id:'Kin / Kon',
+   on_ex:'金曜日 (きんようび) – hari Jumat · 金額 (きんがく) – jumlah uang', kun_ex:'お金 (おかね) – uang · 金色 (きんいろ) – warna emas',
+   sentence:'さいふに金がありません。', sentence_id:'Tidak ada uang di dompet saya.'},
+  {n:10, char:'土', on:'ド・ト', kun:'つち', meaning:'Tanah', id:'Tsuchi', on_id:'Do / To',
+   on_ex:'土曜日 (どようび) · 土地 (とち) – lahan', kun_ex:'土 (つち) – tanah · 土台 (どだい) – fondasi',
+   sentence:'土のなかにむしがいます。', sentence_id:'Ada serangga di dalam tanah.'},
+  {n:11, char:'車', on:'シャ', kun:'くるま', meaning:'Kendaraan / Mobil', id:'Kuruma', on_id:'Sha',
+   on_ex:'電車 (でんしゃ) – kereta listrik · 自動車 (じどうしゃ) – kendaraan bermotor', kun_ex:'車 (くるま) – mobil · 車道 (くるまみち) – jalur kendaraan',
+   sentence:'まいあさ車でかいしゃにいきます。', sentence_id:'Setiap pagi saya pergi ke kantor naik mobil.'},
+  {n:12, char:'門', on:'モン', kun:'かど', meaning:'Gerbang / Pintu Besar', id:'Kado', on_id:'Mon',
+   on_ex:'正門 (せいもん) – gerbang utama · 専門 (せんもん) – spesialisasi', kun_ex:'門 (かど) – gerbang · 門出 (かどで) – keberangkatan',
+   sentence:'がっこうの門でともだちをまちます。', sentence_id:'Saya menunggu teman di gerbang sekolah.'},
+  {n:13, char:'人', on:'ジン・ニン', kun:'ひと', meaning:'Orang / Manusia', id:'Hito', on_id:'Jin / Nin',
+   on_ex:'外国人 (がいこくじん) – orang asing · 人気 (にんき) – populer', kun_ex:'人 (ひと) – orang · 一人 (ひとり) – sendirian',
+   sentence:'あの人はだれですか？', sentence_id:'Siapakah orang itu?'},
+  {n:14, char:'子', on:'シ・ス', kun:'こ・ね', meaning:'Anak / Benih', id:'Ko / Ne', on_id:'Shi / Su',
+   on_ex:'子供 (こども) – anak-anak · 女子 (じょし) – anak perempuan · 原子 (げんし) – atom', kun_ex:'子 (こ) – anak · 子ども (こども) – anak kecil',
+   sentence:'子どもたちがこうえんであそんでいます。', sentence_id:'Anak-anak bermain di taman.'},
+  {n:15, char:'女', on:'ジョ・ニョ・ニョウ', kun:'おんな・め', meaning:'Perempuan / Wanita', id:'Onna / Me', on_id:'Jo / Nyo / Nyou',
+   on_ex:'女性 (じょせい) – perempuan · 女優 (じょゆう) – aktris · 女房 (にょうぼう) – istri', kun_ex:'女 (おんな) – perempuan · 乙女 (おとめ) – gadis',
+   sentence:'かのじょはやさしい女のひとです。', sentence_id:'Dia adalah wanita yang baik hati.'},
+  {n:16, char:'竹', on:'チク', kun:'たけ', meaning:'Bambu', id:'Take', on_id:'Chiku',
+   on_ex:'竹林 (ちくりん) – hutan bambu', kun_ex:'竹 (たけ) – bambu · 竹の子 (たけのこ) – rebung',
+   sentence:'パンダは竹をたべます。', sentence_id:'Panda makan bambu.'},
+  {n:17, char:'雨', on:'ウ', kun:'あめ・あま', meaning:'Hujan', id:'Ame / Ama', on_id:'U',
+   on_ex:'雨天 (うてん) – hari hujan', kun_ex:'雨 (あめ) – hujan · 雨水 (あまみず) – air hujan',
+   sentence:'雨がふっているのでかさをもってください。', sentence_id:'Tolong bawa payung karena sedang hujan.'},
+  {n:18, char:'貝', on:'バイ', kun:'かい', meaning:'Kerang / Cangkang', id:'Kai', on_id:'Bai',
+   on_ex:'貝塚 (かいづか) – gundukan kerang', kun_ex:'貝 (かい) – kerang · 貝殻 (かいがら) – cangkang kerang',
+   sentence:'うみで貝をひろいました。', sentence_id:'Saya memungut kerang di pantai.'},
+  {n:19, char:'米', on:'マイ・ベイ', kun:'こめ・よね', meaning:'Beras / Amerika', id:'Kome / Yone', on_id:'Mai / Bei',
+   on_ex:'米国 (べいこく) – Amerika · 白米 (はくまい) – nasi putih', kun_ex:'米 (こめ) – beras · 米粒 (こめつぶ) – butir beras',
+   sentence:'にほんじんはお米をよくたべます。', sentence_id:'Orang Jepang sering makan nasi.'},
+  {n:20, char:'夕', on:'セキ', kun:'ゆう', meaning:'Sore / Petang / Malam', id:'Yuu', on_id:'Seki',
+   on_ex:'七夕 (たなばた) – festival bintang', kun_ex:'夕方 (ゆうがた) – sore hari · 夕日 (ゆうひ) – matahari sore',
+   sentence:'夕がたにさんぽするのがすきです。', sentence_id:'Saya suka berjalan-jalan di sore hari.'},
+  {n:21, char:'鳥', on:'チョウ', kun:'とり', meaning:'Burung', id:'Tori', on_id:'Cho',
+   on_ex:'鳥類 (ちょうるい) – jenis burung', kun_ex:'鳥 (とり) – burung · 小鳥 (ことり) – burung kecil',
+   sentence:'そらに鳥がとんでいます。', sentence_id:'Ada burung yang terbang di langit.'},
+  {n:22, char:'馬', on:'バ・メ', kun:'うま・ま', meaning:'Kuda', id:'Uma / Ma', on_id:'Ba / Me',
+   on_ex:'馬車 (ばしゃ) – kereta kuda · 競馬 (けいば) – balap kuda', kun_ex:'馬 (うま) – kuda · 馬場 (ばば) – arena berkuda',
+   sentence:'ぼくじょうで馬にのりました。', sentence_id:'Saya menunggang kuda di padang rumput.'},
+  {n:23, char:'魚', on:'ギョ', kun:'さかな・うお', meaning:'Ikan', id:'Sakana / Uo', on_id:'Gyo',
+   on_ex:'金魚 (きんぎょ) – ikan mas', kun_ex:'魚 (さかな) – ikan · 魚市場 (うおいちば) – pasar ikan',
+   sentence:'魚をつるのがしゅみです。', sentence_id:'Hobi saya adalah memancing ikan.'},
+  {n:24, char:'牛', on:'ギュウ', kun:'うし', meaning:'Sapi / Lembu', id:'Ushi', on_id:'Gyu',
+   on_ex:'牛乳 (ぎゅうにゅう) – susu sapi · 牛肉 (ぎゅうにく) – daging sapi', kun_ex:'牛 (うし) – sapi',
+   sentence:'のうかで牛をそだてています。', sentence_id:'Mereka memelihara sapi di peternakan.'},
+  {n:25, char:'黒', on:'コク', kun:'くろ・くろい', meaning:'Hitam / Gelap', id:'Kuro / Kuroi', on_id:'Koku',
+   on_ex:'暗黒 (あんこく) – kegelapan', kun_ex:'黒 (くろ) – warna hitam · 黒い (くろい) – berwarna hitam',
+   sentence:'そのねこは黒くてかわいいです。', sentence_id:'Kucing itu hitam dan lucu.'},
+  {n:26, char:'口', on:'コウ・ク', kun:'くち', meaning:'Mulut / Lubang', id:'Kuchi', on_id:'Ko / Ku',
+   on_ex:'口頭 (こうとう) – secara lisan · 人口 (じんこう) – populasi', kun_ex:'口 (くち) – mulut · 出口 (でぐち) – pintu keluar',
+   sentence:'口をおおきくあけてください。', sentence_id:'Tolong buka mulut Anda lebar-lebar.'},
+  {n:27, char:'目', on:'モク・ボク', kun:'め・ま', meaning:'Mata / Nomor Urut', id:'Me / Ma', on_id:'Moku / Boku',
+   on_ex:'目的 (もくてき) – tujuan · 注目 (ちゅうもく) – perhatian', kun_ex:'目 (め) – mata · 真面目 (まじめ) – serius',
+   sentence:'目がわるいのでめがねをかけます。', sentence_id:'Karena penglihatan saya buruk, saya memakai kacamata.'},
+  {n:28, char:'耳', on:'ジ', kun:'みみ', meaning:'Telinga', id:'Mimi', on_id:'Ji',
+   on_ex:'耳鼻科 (じびか) – THT', kun_ex:'耳 (みみ) – telinga · 耳打ち (みみうち) – berbisik',
+   sentence:'耳がいたいのでびょういんにいきます。', sentence_id:'Karena telinga saya sakit, saya akan ke rumah sakit.'},
+  {n:29, char:'手', on:'シュ・ズ', kun:'て・た', meaning:'Tangan', id:'Te / Ta', on_id:'Shu / Zu',
+   on_ex:'手術 (しゅじゅつ) – operasi · 握手 (あくしゅ) – jabat tangan', kun_ex:'手 (て) – tangan · 手伝い (てつだい) – bantuan · 下手 (へた) – tidak mahir',
+   sentence:'手をあらってからしょくじをします。', sentence_id:'Saya makan setelah mencuci tangan.'},
+  {n:30, char:'足', on:'ソク', kun:'あし・た', meaning:'Kaki / Cukup', id:'Ashi / Ta', on_id:'Soku',
+   on_ex:'足跡 (そくせき) – jejak kaki · 満足 (まんぞく) – kepuasan', kun_ex:'足 (あし) – kaki · 足りる (たりる) – cukup',
+   sentence:'足がいたくてあるけません。', sentence_id:'Kaki saya sakit sehingga tidak bisa berjalan.'},
+  {n:31, char:'肉', on:'ニク', kun:'しし', meaning:'Daging', id:'Shishi', on_id:'Niku',
+   on_ex:'牛肉 (ぎゅうにく) – daging sapi · 筋肉 (きんにく) – otot', kun_ex:'肉 (しし) – daging (bahasa kuno)',
+   sentence:'すきやきには肉をつかいます。', sentence_id:'Sukiyaki menggunakan daging.'},
+  {n:32, char:'弓', on:'キュウ', kun:'ゆみ', meaning:'Busur Panah', id:'Yumi', on_id:'Kyu',
+   on_ex:'弓道 (きゅうどう) – seni memanah', kun_ex:'弓 (ゆみ) – busur panah',
+   sentence:'弓どうはにほんのでんとうてきなスポーツです。', sentence_id:'Kyudo adalah olahraga tradisional Jepang.'},
+  {n:33, char:'矢', on:'シ', kun:'や', meaning:'Anak Panah', id:'Ya', on_id:'Shi',
+   on_ex:'弓矢 (ゆみや) – busur dan anak panah', kun_ex:'矢 (や) – anak panah · 矢印 (やじるし) – tanda panah',
+   sentence:'矢をゆみでいます。', sentence_id:'Saya melepaskan anak panah dengan busur.'},
+  {n:34, char:'糸', on:'シ', kun:'いと', meaning:'Benang / Tali', id:'Ito', on_id:'Shi',
+   on_ex:'糸口 (いとぐち) – petunjuk awal', kun_ex:'糸 (いと) – benang · 生糸 (きいと) – benang sutra mentah',
+   sentence:'はははりと糸でふくをぬいます。', sentence_id:'Ibu menjahit baju dengan jarum dan benang.'},
+  {n:35, char:'主', on:'シュ・ス', kun:'ぬし・おも', meaning:'Tuan / Utama / Pemilik', id:'Nushi / Omo', on_id:'Shu / Su',
+   on_ex:'主人 (しゅじん) – tuan rumah · 神主 (かんぬし) – pendeta Shinto', kun_ex:'主 (ぬし) – pemilik · 主に (おもに) – terutama',
+   sentence:'かれはみせの主です。', sentence_id:'Dia adalah pemilik toko.'},
+  {n:36, char:'力', on:'リョク・リキ', kun:'ちから', meaning:'Kekuatan / Tenaga', id:'Chikara', on_id:'Ryoku / Riki',
+   on_ex:'体力 (たいりょく) – stamina · 力士 (りきし) – pegulat sumo', kun_ex:'力 (ちから) – kekuatan',
+   sentence:'力をあわせてもんだいをかいけつしましょう。', sentence_id:'Mari selesaikan masalah dengan menyatukan kekuatan.'},
+  {n:37, char:'刀', on:'トウ', kun:'かたな', meaning:'Pedang / Pisau', id:'Katana', on_id:'To',
+   on_ex:'日本刀 (にほんとう) – katana Jepang', kun_ex:'刀 (かたな) – pedang · 小刀 (こがたな) – pisau kecil',
+   sentence:'さむらいは刀をもっています。', sentence_id:'Samurai membawa pedang.'},
+  {n:38, char:'本', on:'ホン', kun:'もと', meaning:'Buku / Asal / Pokok', id:'Moto', on_id:'Hon',
+   on_ex:'本当 (ほんとう) – sungguh · 日本 (にほん) – Jepang', kun_ex:'本 (もと) – asal/pangkal · 木の本 (きのもと) – pangkal pohon',
+   sentence:'これは本とうのはなしです。', sentence_id:'Ini adalah cerita yang sesungguhnya.'},
+  {n:39, char:'父', on:'フ', kun:'ちち・とう', meaning:'Ayah', id:'Chichi / Tou', on_id:'Fu',
+   on_ex:'父母 (ふぼ) – ayah ibu · 祖父 (そふ) – kakek', kun_ex:'父 (ちち) – ayah · お父さん (おとうさん) – ayah (sopan)',
+   sentence:'父はまいあさはやくおきます。', sentence_id:'Ayah bangun pagi setiap hari.'},
+  {n:40, char:'母', on:'ボ', kun:'はは・かあ', meaning:'Ibu', id:'Haha / Kaa', on_id:'Bo',
+   on_ex:'父母 (ふぼ) – ayah dan ibu · 母国 (ぼこく) – tanah air', kun_ex:'母 (はは) – ibu · お母さん (おかあさん) – ibu (sopan)',
+   sentence:'母はりょうりがとてもじょうずです。', sentence_id:'Ibu sangat pandai memasak.'},
+  {n:41, char:'先', on:'セン', kun:'さき・ま', meaning:'Duluan / Ujung / Depan', id:'Saki / Ma', on_id:'Sen',
+   on_ex:'先生 (せんせい) – guru · 先月 (せんげつ) – bulan lalu', kun_ex:'先 (さき) – ujung/depan · 先ず (まず) – pertama-tama',
+   sentence:'先せいはすうがくをおしえています。', sentence_id:'Guru mengajar matematika.'},
+  {n:42, char:'生', on:'セイ・ショウ', kun:'いき・う・は・き・なま', meaning:'Hidup / Lahir / Mentah', id:'Iki / U / Ha / Ki / Nama', on_id:'Sei / Sho',
+   on_ex:'先生 (せんせい) – guru · 一生 (いっしょう) – seumur hidup', kun_ex:'生きる (いきる) – hidup · 生まれる (うまれる) – lahir · 生 (なま) – mentah',
+   sentence:'生きることはすばらしいです。', sentence_id:'Hidup itu sungguh luar biasa.'},
+  {n:43, char:'一', on:'イチ・イツ', kun:'ひと', meaning:'Satu', id:'Hito', on_id:'Ichi / Itsu',
+   on_ex:'一月 (いちがつ) – Januari · 統一 (とういつ) – penyatuan', kun_ex:'一つ (ひとつ) – satu buah',
+   sentence:'つくえのうえに一つのほんがあります。', sentence_id:'Ada satu buku di atas meja.'},
+  {n:44, char:'二', on:'ニ', kun:'ふた', meaning:'Dua', id:'Futa', on_id:'Ni',
+   on_ex:'二月 (にがつ) – Februari · 二人 (ふたり) – dua orang', kun_ex:'二つ (ふたつ) – dua buah',
+   sentence:'二つのりんごをたべました。', sentence_id:'Saya makan dua buah apel.'},
+  {n:45, char:'三', on:'サン', kun:'み', meaning:'Tiga', id:'Mi', on_id:'San',
+   on_ex:'三月 (さんがつ) – Maret · 三角 (さんかく) – segitiga', kun_ex:'三つ (みっつ) – tiga buah',
+   sentence:'三にんのともだちとあそびました。', sentence_id:'Saya bermain dengan tiga teman.'},
+  {n:46, char:'四', on:'シ', kun:'よ・よん', meaning:'Empat', id:'Yo / Yon', on_id:'Shi',
+   on_ex:'四月 (しがつ) – April · 四角 (しかく) – persegi', kun_ex:'四つ (よっつ) – empat buah',
+   sentence:'四つのいすがあります。', sentence_id:'Ada empat kursi.'},
+  {n:47, char:'五', on:'ゴ', kun:'いつ', meaning:'Lima', id:'Itsu', on_id:'Go',
+   on_ex:'五月 (ごがつ) – Mei · 五感 (ごかん) – lima indera', kun_ex:'五つ (いつつ) – lima buah',
+   sentence:'五つのおかしをかいました。', sentence_id:'Saya membeli lima kue.'},
+  {n:48, char:'六', on:'ロク', kun:'む', meaning:'Enam', id:'Mu', on_id:'Roku',
+   on_ex:'六月 (ろくがつ) – Juni · 六角 (ろっかく) – segi enam', kun_ex:'六つ (むっつ) – enam buah',
+   sentence:'六じにおきます。', sentence_id:'Saya bangun jam enam.'},
+  {n:49, char:'七', on:'シチ', kun:'なな', meaning:'Tujuh', id:'Nana', on_id:'Shichi',
+   on_ex:'七月 (しちがつ) – Juli · 七夕 (たなばた) – festival Tanabata', kun_ex:'七つ (ななつ) – tujuh buah',
+   sentence:'七つのほしがみえます。', sentence_id:'Saya bisa melihat tujuh bintang.'},
+  {n:50, char:'八', on:'ハチ', kun:'や', meaning:'Delapan', id:'Ya', on_id:'Hachi',
+   on_ex:'八月 (はちがつ) – Agustus · 八百屋 (やおや) – toko sayur', kun_ex:'八つ (やっつ) – delapan buah',
+   sentence:'八じにがっこうがはじまります。', sentence_id:'Sekolah dimulai jam delapan.'},
+  {n:51, char:'九', on:'キュウ・ク', kun:'ここの', meaning:'Sembilan', id:'Kokono', on_id:'Kyuu / Ku',
+   on_ex:'九月 (くがつ) – September · 九州 (きゅうしゅう) – Kyushu', kun_ex:'九つ (ここのつ) – sembilan buah',
+   sentence:'九つのたまごがあります。', sentence_id:'Ada sembilan butir telur.'},
+  {n:52, char:'十', on:'ジュウ', kun:'とお', meaning:'Sepuluh', id:'Too', on_id:'Juu',
+   on_ex:'十月 (じゅうがつ) – Oktober · 十分 (じゅうぶん) – cukup', kun_ex:'十 (とお) – sepuluh',
+   sentence:'十にんのがくせいがいます。', sentence_id:'Ada sepuluh siswa.'},
+  {n:53, char:'百', on:'ヒャク', kun:'もも', meaning:'Seratus', id:'Momo', on_id:'Hyaku',
+   on_ex:'百円 (ひゃくえん) – seratus yen · 百科 (ひゃっか) – ensiklopedia', kun_ex:'百 (もも) – seratus',
+   sentence:'百えんのおかしをかいました。', sentence_id:'Saya membeli kue seharga seratus yen.'},
+  {n:54, char:'千', on:'セン', kun:'ち', meaning:'Seribu', id:'Chi', on_id:'Sen',
+   on_ex:'千円 (せんえん) – seribu yen · 千年 (せんねん) – seribu tahun', kun_ex:'千 (ち) – seribu',
+   sentence:'千えんさつをもっています。', sentence_id:'Saya punya uang kertas seribu yen.'},
+  {n:55, char:'万', on:'マン・バン', kun:'よろず', meaning:'Sepuluh ribu', id:'Yorozu', on_id:'Man / Ban',
+   on_ex:'万円 (まんえん) – sepuluh ribu yen · 万国 (ばんこく) – semua negara', kun_ex:'万 (よろず) – banyak sekali',
+   sentence:'このかばんはいち万えんです。', sentence_id:'Tas ini harganya sepuluh ribu yen.'},
+  {n:56, char:'年', on:'ネン', kun:'とし', meaning:'Tahun', id:'Toshi', on_id:'Nen',
+   on_ex:'年末 (ねんまつ) – akhir tahun · 来年 (らいねん) – tahun depan', kun_ex:'年 (とし) – tahun / usia',
+   sentence:'ことしはたのしい年でした。', sentence_id:'Tahun ini adalah tahun yang menyenangkan.'},
+  {n:57, char:'円', on:'エン', kun:'まる', meaning:'Yen / Lingkaran', id:'Maru', on_id:'En',
+   on_ex:'百円 (ひゃくえん) – seratus yen · 円高 (えんだか) – yen menguat', kun_ex:'円い (まるい) – bulat',
+   sentence:'これはごひゃく円です。', sentence_id:'Ini harganya lima ratus yen.'},
+  {n:58, char:'上', on:'ジョウ', kun:'うえ・あ', meaning:'Atas / Naik', id:'Ue / A', on_id:'Jou',
+   on_ex:'上手 (じょうず) – pandai · 上昇 (じょうしょう) – kenaikan', kun_ex:'上 (うえ) – atas · 上がる (あがる) – naik',
+   sentence:'つくえの上にほんがあります。', sentence_id:'Ada buku di atas meja.'},
+  {n:59, char:'下', on:'カ・ゲ', kun:'した・さ', meaning:'Bawah / Turun', id:'Shita / Sa', on_id:'Ka / Ge',
+   on_ex:'地下 (ちか) – bawah tanah · 下降 (かこう) – penurunan', kun_ex:'下 (した) – bawah · 下がる (さがる) – turun',
+   sentence:'いすの下にねこがいます。', sentence_id:'Ada kucing di bawah kursi.'},
+  {n:60, char:'半', on:'ハン', kun:'なか', meaning:'Setengah', id:'Nakaba', on_id:'Han',
+   on_ex:'半分 (はんぶん) – setengah · 半年 (はんとし) – setengah tahun', kun_ex:'半ば (なかば) – pertengahan',
+   sentence:'さんじ半にともだちとあいます。', sentence_id:'Saya bertemu teman jam setengah empat.'},
+  {n:61, char:'中', on:'チュウ', kun:'なか', meaning:'Tengah / Dalam', id:'Naka', on_id:'Chuu',
+   on_ex:'中学校 (ちゅうがっこう) – SMP · 中心 (ちゅうしん) – pusat', kun_ex:'中 (なか) – dalam / tengah',
+   sentence:'はこの中におかしがあります。', sentence_id:'Ada kue di dalam kotak.'},
+  {n:62, char:'分', on:'フン・ブン', kun:'わ', meaning:'Menit / Bagian', id:'Wa', on_id:'Fun / Bun',
+   on_ex:'五分 (ごふん) – lima menit · 半分 (はんぶん) – setengah', kun_ex:'分ける (わける) – membagi',
+   sentence:'じゅっ分まってください。', sentence_id:'Tolong tunggu sepuluh menit.'},
+  {n:63, char:'男', on:'ダン・ナン', kun:'おとこ', meaning:'Laki-laki / Pria', id:'Otoko', on_id:'Dan / Nan',
+   on_ex:'男性 (だんせい) – pria · 男子 (だんし) – laki-laki', kun_ex:'男 (おとこ) – laki-laki',
+   sentence:'あの男のひとはせんせいです。', sentence_id:'Pria itu adalah seorang guru.'},
+  {n:64, char:'林', on:'リン', kun:'はやし', meaning:'Hutan Kecil', id:'Hayashi', on_id:'Rin',
+   on_ex:'林業 (りんぎょう) – industri kehutanan · 森林 (しんりん) – hutan', kun_ex:'林 (はやし) – hutan kecil',
+   sentence:'林のなかでとりがないています。', sentence_id:'Burung berkicau di dalam hutan.'},
+  {n:65, char:'森', on:'シン', kun:'もり', meaning:'Hutan Lebat', id:'Mori', on_id:'Shin',
+   on_ex:'森林 (しんりん) – hutan · 森厳 (しんげん) – khidmat', kun_ex:'森 (もり) – hutan lebat',
+   sentence:'森のなかはとてもしずかです。', sentence_id:'Di dalam hutan sangat tenang.'},
+  {n:66, char:'休', on:'キュウ', kun:'やす', meaning:'Istirahat / Libur', id:'Yasu', on_id:'Kyuu',
+   on_ex:'休日 (きゅうじつ) – hari libur · 休憩 (きゅうけい) – istirahat', kun_ex:'休む (やすむ) – beristirahat',
+   sentence:'きょうはがっこうが休みです。', sentence_id:'Hari ini sekolah libur.'},
+  {n:67, char:'体', on:'タイ・テイ', kun:'からだ', meaning:'Tubuh / Badan', id:'Karada', on_id:'Tai / Tei',
+   on_ex:'体育 (たいいく) – pendidikan jasmani · 体操 (たいそう) – senam', kun_ex:'体 (からだ) – tubuh / badan',
+   sentence:'体をきたえるためにまいにちはしります。', sentence_id:'Saya berlari setiap hari untuk melatih tubuh.'},
+  {n:68, char:'住', on:'ジュウ', kun:'す', meaning:'Tinggal / Bermukim', id:'Su', on_id:'Juu',
+   on_ex:'住所 (じゅうしょ) – alamat · 住宅 (じゅうたく) – perumahan', kun_ex:'住む (すむ) – tinggal / bermukim',
+   sentence:'わたしはとうきょうに住んでいます。', sentence_id:'Saya tinggal di Tokyo.'},
+  {n:69, char:'明', on:'メイ・ミョウ', kun:'あか・あ', meaning:'Terang / Jelas', id:'Aka / A', on_id:'Mei / Myou',
+   on_ex:'明日 (あした) – besok · 説明 (せつめい) – penjelasan', kun_ex:'明るい (あかるい) – terang · 明ける (あける) – fajar',
+   sentence:'このへやはとても明るいです。', sentence_id:'Ruangan ini sangat terang.'},
+  {n:70, char:'字', on:'ジ', kun:'あざ', meaning:'Huruf / Karakter', id:'Aza', on_id:'Ji',
+   on_ex:'文字 (もじ) – huruf / karakter · 漢字 (かんじ) – kanji', kun_ex:'字 (あざ) – dusun / huruf',
+   sentence:'この字はどうよみますか？', sentence_id:'Huruf ini dibaca bagaimana?'},
+  {n:71, char:'学', on:'ガク', kun:'まな', meaning:'Belajar / Ilmu', id:'Mana', on_id:'Gaku',
+   on_ex:'学校 (がっこう) – sekolah · 大学 (だいがく) – universitas', kun_ex:'学ぶ (まなぶ) – belajar',
+   sentence:'まいにち学校でにほんごをまなびます。', sentence_id:'Saya belajar bahasa Jepang di sekolah setiap hari.'},
+  {n:72, char:'安', on:'アン', kun:'やす', meaning:'Aman / Murah / Tenang', id:'Yasu', on_id:'An',
+   on_ex:'安全 (あんぜん) – aman · 安心 (あんしん) – tenang hati', kun_ex:'安い (やすい) – murah · 安らか (やすらか) – tenteram',
+   sentence:'このみせのものはとても安いです。', sentence_id:'Barang di toko ini sangat murah.'},
+  {n:73, char:'好', on:'コウ', kun:'す・この', meaning:'Suka / Baik', id:'Su / Kono', on_id:'Kou',
+   on_ex:'好意 (こうい) – niat baik · 好調 (こうちょう) – kondisi baik', kun_ex:'好き (すき) – suka · 好む (このむ) – menyukai',
+   sentence:'わたしはおんがくが好きです。', sentence_id:'Saya suka musik.'},
+  {n:74, char:'毎', on:'マイ', kun:'ごと', meaning:'Setiap / Tiap-tiap', id:'Goto', on_id:'Mai',
+   on_ex:'毎日 (まいにち) – setiap hari · 毎朝 (まいあさ) – setiap pagi', kun_ex:'毎 (ごと) – setiap',
+   sentence:'毎あさごじにおきます。', sentence_id:'Saya bangun jam lima setiap pagi.'},
+  {n:75, char:'海', on:'カイ', kun:'うみ', meaning:'Laut / Samudra', id:'Umi', on_id:'Kai',
+   on_ex:'海外 (かいがい) – luar negeri · 海岸 (かいがん) – pantai', kun_ex:'海 (うみ) – laut',
+   sentence:'なつに海でおよぎます。', sentence_id:'Saya berenang di laut saat musim panas.'},
+  {n:76, char:'駅', on:'エキ', kun:'うまや', meaning:'Stasiun', id:'Umaya', on_id:'Eki',
+   on_ex:'駅員 (えきいん) – petugas stasiun · 駅前 (えきまえ) – depan stasiun', kun_ex:'駅 (うまや) – kandang kuda / stasiun',
+   sentence:'駅のまえでともだちをまちます。', sentence_id:'Saya menunggu teman di depan stasiun.'},
+  {n:77, char:'駐', on:'チュウ', kun:'とど', meaning:'Parkir / Berhenti', id:'Todo', on_id:'Chuu',
+   on_ex:'駐車 (ちゅうしゃ) – parkir · 駐車場 (ちゅうしゃじょう) – tempat parkir', kun_ex:'駐まる (とどまる) – berhenti / menetap',
+   sentence:'駐しゃじょうにくるまをとめました。', sentence_id:'Saya memarkirkan mobil di tempat parkir.'},
+  {n:78, char:'験', on:'ケン・ゲン', kun:'ため', meaning:'Ujian / Pengalaman', id:'Tame', on_id:'Ken / Gen',
+   on_ex:'試験 (しけん) – ujian · 経験 (けいけん) – pengalaman', kun_ex:'験す (ためす) – mencoba / menguji',
+   sentence:'あしたしけんがあるのでべんきょうします。', sentence_id:'Besok ada ujian jadi saya belajar.'},
+  {n:79, char:'間', on:'カン・ケン', kun:'あいだ・ま', meaning:'Antara / Jarak / Waktu', id:'Aida / Ma', on_id:'Kan / Ken',
+   on_ex:'時間 (じかん) – waktu · 間接 (かんせつ) – tidak langsung', kun_ex:'間 (あいだ) – antara · 間 (ま) – jeda / ruang',
+   sentence:'いえとえきの間はとおいです。', sentence_id:'Jarak antara rumah dan stasiun jauh.'},
+  {n:80, char:'聞', on:'ブン・モン', kun:'き', meaning:'Mendengar / Mendengarkan', id:'Ki', on_id:'Bun / Mon',
+   on_ex:'新聞 (しんぶん) – koran · 見聞 (けんぶん) – pengamatan', kun_ex:'聞く (きく) – mendengar / bertanya',
+   sentence:'まいにちにほんごのうたを聞きます。', sentence_id:'Saya mendengarkan lagu Jepang setiap hari.'},
+  {n:81, char:'開', on:'カイ', kun:'ひら・あ', meaning:'Buka / Membuka', id:'Hira / A', on_id:'Kai',
+   on_ex:'開店 (かいてん) – buka toko · 開発 (かいはつ) – pengembangan', kun_ex:'開く (ひらく) – membuka · 開ける (あける) – membuka',
+   sentence:'まどを開けてください。', sentence_id:'Tolong buka jendelanya.'},
+  {n:82, char:'閉', on:'ヘイ', kun:'し・と', meaning:'Tutup / Menutup', id:'Shi / To', on_id:'Hei',
+   on_ex:'閉店 (へいてん) – tutup toko · 閉幕 (へいまく) – penutupan', kun_ex:'閉じる (とじる) – menutup · 閉める (しめる) – menutup',
+   sentence:'ドアをしずかに閉めてください。', sentence_id:'Tolong tutup pintunya dengan pelan.'},
+  {n:83, char:'問', on:'モン', kun:'と', meaning:'Pertanyaan / Masalah', id:'To', on_id:'Mon',
+   on_ex:'問題 (もんだい) – soal / masalah · 質問 (しつもん) – pertanyaan', kun_ex:'問う (とう) – bertanya / menanyakan',
+   sentence:'せんせいにわからないことを問います。', sentence_id:'Saya bertanya kepada guru tentang hal yang tidak saya mengerti.'},
+  {n:84, char:'大', on:'ダイ・タイ', kun:'おお', meaning:'Besar', id:'Oo', on_id:'Dai / Tai',
+   on_ex:'大学 (だいがく) – universitas · 大切 (たいせつ) – penting', kun_ex:'大きい (おおきい) – besar',
+   sentence:'あのビルはとても大きいです。', sentence_id:'Gedung itu sangat besar.'},
+  {n:85, char:'小', on:'ショウ', kun:'ちい・こ・お', meaning:'Kecil', id:'Chii / Ko / O', on_id:'Shou',
+   on_ex:'小学校 (しょうがっこう) – SD · 小説 (しょうせつ) – novel', kun_ex:'小さい (ちいさい) – kecil · 小川 (おがわ) – sungai kecil',
+   sentence:'このねこはとても小さいです。', sentence_id:'Kucing ini sangat kecil.'},
+  {n:86, char:'少', on:'ショウ', kun:'すく・すこ', meaning:'Sedikit / Kurang', id:'Suku / Suko', on_id:'Shou',
+   on_ex:'少数 (しょうすう) – minoritas · 少年 (しょうねん) – anak laki-laki', kun_ex:'少ない (すくない) – sedikit · 少し (すこし) – sedikit',
+   sentence:'このへやにはつくえが少ないです。', sentence_id:'Di ruangan ini hanya ada sedikit meja.'},
+  {n:87, char:'多', on:'タ', kun:'おお', meaning:'Banyak', id:'Oo', on_id:'Ta',
+   on_ex:'多数 (たすう) – mayoritas · 多様 (たよう) – beragam', kun_ex:'多い (おおい) – banyak',
+   sentence:'このまちにはひとが多いです。', sentence_id:'Di kota ini banyak orang.'},
+  {n:88, char:'高', on:'コウ', kun:'たか', meaning:'Tinggi / Mahal', id:'Taka', on_id:'Kou',
+   on_ex:'高校 (こうこう) – SMA · 高速 (こうそく) – kecepatan tinggi', kun_ex:'高い (たかい) – tinggi / mahal · 高さ (たかさ) – ketinggian',
+   sentence:'このやまはとても高いです。', sentence_id:'Gunung ini sangat tinggi.'},
+  {n:89, char:'早', on:'ソウ・サッ', kun:'はや', meaning:'Cepat / Pagi-pagi', id:'Haya', on_id:'Sou / Sas',
+   on_ex:'早朝 (そうちょう) – dini hari · 早速 (さっそく) – segera', kun_ex:'早い (はやい) – cepat / pagi · 早く (はやく) – dengan cepat',
+   sentence:'まいあさ早くおきます。', sentence_id:'Saya bangun pagi setiap hari.'},
+  {n:90, char:'古', on:'コ', kun:'ふる', meaning:'Lama / Kuno', id:'Furu', on_id:'Ko',
+   on_ex:'古代 (こだい) – zaman kuno · 古典 (こてん) – klasik', kun_ex:'古い (ふるい) – lama / kuno · 古着 (ふるぎ) – baju bekas',
+   sentence:'このてらはとても古いです。', sentence_id:'Kuil ini sangat tua.'},
+  {n:91, char:'長', on:'チョウ', kun:'なが', meaning:'Panjang / Lama / Pemimpin', id:'Naga', on_id:'Chou',
+   on_ex:'長所 (ちょうしょ) – kelebihan · 校長 (こうちょう) – kepala sekolah', kun_ex:'長い (ながい) – panjang / lama · 長さ (ながさ) – panjang',
+   sentence:'このかわはとても長いです。', sentence_id:'Sungai ini sangat panjang.'},
+  {n:92, char:'元', on:'ゲン・ガン', kun:'もと', meaning:'Asal / Semula / Sehat', id:'Moto', on_id:'Gen / Gan',
+   on_ex:'元気 (げんき) – sehat / bersemangat · 元旦 (がんたん) – tahun baru', kun_ex:'元 (もと) – asal / semula',
+   sentence:'げんきですか？はい、元気です。', sentence_id:'Apa kabar? Baik-baik saja.'},
+  {n:93, char:'楽', on:'ガク・ラク', kun:'たの', meaning:'Senang / Musik / Mudah', id:'Tano', on_id:'Gaku / Raku',
+   on_ex:'音楽 (おんがく) – musik · 楽観 (らっかん) – optimis', kun_ex:'楽しい (たのしい) – menyenangkan · 楽しむ (たのしむ) – menikmati',
+   sentence:'まいにちのべんきょうがとても楽しいです。', sentence_id:'Belajar setiap hari sangat menyenangkan.'},
+  {n:94, char:'正', on:'セイ・ショウ', kun:'ただ・まさ', meaning:'Benar / Lurus / Resmi', id:'Tada / Masa', on_id:'Sei / Shou',
+   on_ex:'正解 (せいかい) – jawaban benar · 正月 (しょうがつ) – tahun baru', kun_ex:'正しい (ただしい) – benar · 正に (まさに) – tepat',
+   sentence:'正しいこたえをえらんでください。', sentence_id:'Tolong pilih jawaban yang benar.'},
+  {n:95, char:'東', on:'トウ', kun:'ひがし', meaning:'Timur', id:'Higashi', on_id:'Tou',
+   on_ex:'東京 (とうきょう) – Tokyo · 東洋 (とうよう) – Asia Timur', kun_ex:'東 (ひがし) – timur',
+   sentence:'たいようはひがしからのぼり東にしずみます。', sentence_id:'Matahari terbit dari timur dan tenggelam di barat.'},
+  {n:96, char:'西', on:'セイ・サイ', kun:'にし', meaning:'Barat', id:'Nishi', on_id:'Sei / Sai',
+   on_ex:'西洋 (せいよう) – Barat / Eropa · 関西 (かんさい) – Kansai', kun_ex:'西 (にし) – barat',
+   sentence:'えきの西ぐちでまっています。', sentence_id:'Saya menunggu di pintu barat stasiun.'},
+  {n:97, char:'南', on:'ナン・ナ', kun:'みなみ', meaning:'Selatan', id:'Minami', on_id:'Nan / Na',
+   on_ex:'南極 (なんきょく) – Antartika · 南米 (なんべい) – Amerika Selatan', kun_ex:'南 (みなみ) – selatan',
+   sentence:'わたしのいえは南をむいています。', sentence_id:'Rumah saya menghadap ke selatan.'},
+  {n:98, char:'北', on:'ホク', kun:'きた', meaning:'Utara', id:'Kita', on_id:'Hoku',
+   on_ex:'北極 (ほっきょく) – Arktik · 北海道 (ほっかいどう) – Hokkaido', kun_ex:'北 (きた) – utara',
+   sentence:'北のそらはとてもさむいです。', sentence_id:'Langit di utara sangat dingin.'},
+  {n:99, char:'右', on:'ウ・ユウ', kun:'みぎ', meaning:'Kanan', id:'Migi', on_id:'U / Yuu',
+   on_ex:'右折 (うせつ) – belok kanan · 左右 (さゆう) – kiri kanan', kun_ex:'右 (みぎ) – kanan',
+   sentence:'つぎのかどをみぎにまがってください。', sentence_id:'Tolong belok kanan di tikungan berikutnya.'},
+  {n:100, char:'左', on:'サ', kun:'ひだり', meaning:'Kiri', id:'Hidari', on_id:'Sa',
+   on_ex:'左折 (させつ) – belok kiri · 左右 (さゆう) – kiri kanan', kun_ex:'左 (ひだり) – kiri',
+   sentence:'ゆうびんきょくはあのビルの左にあります。', sentence_id:'Kantor pos ada di sebelah kiri gedung itu.'},
+  {n:101, char:'前', on:'ゼン', kun:'まえ', meaning:'Depan / Sebelum', id:'Mae', on_id:'Zen',
+   on_ex:'前進 (ぜんしん) – maju · 午前 (ごぜん) – pagi / AM', kun_ex:'前 (まえ) – depan / sebelum',
+   sentence:'えきの前でともだちをまちます。', sentence_id:'Saya menunggu teman di depan stasiun.'},
+  {n:102, char:'後', on:'ゴ・コウ', kun:'うし・あと', meaning:'Belakang / Sesudah', id:'Ushi / Ato', on_id:'Go / Kou',
+   on_ex:'午後 (ごご) – sore / PM · 後悔 (こうかい) – menyesal', kun_ex:'後ろ (うしろ) – belakang · 後 (あと) – sesudah',
+   sentence:'じゅぎょうの後でともだちとあそびます。', sentence_id:'Setelah pelajaran saya bermain dengan teman.'},
+  {n:103, char:'外', on:'ガイ・ゲ', kun:'そと・ほか', meaning:'Luar / Selain', id:'Soto / Hoka', on_id:'Gai / Ge',
+   on_ex:'海外 (かいがい) – luar negeri · 外国 (がいこく) – negara asing', kun_ex:'外 (そと) – luar · 外 (ほか) – selain',
+   sentence:'きょうはそとがとてもさむいです。', sentence_id:'Hari ini di luar sangat dingin.'},
+  {n:104, char:'天', on:'テン', kun:'あめ・あま', meaning:'Langit / Surga', id:'Ame / Ama', on_id:'Ten',
+   on_ex:'天気 (てんき) – cuaca · 天国 (てんごく) – surga', kun_ex:'天 (あめ) – langit · 天の川 (あまのがわ) – Bima Sakti',
+   sentence:'きょうは天きがいいです。', sentence_id:'Cuaca hari ini bagus.'},
+  {n:105, char:'夫', on:'フ・フウ', kun:'おっと', meaning:'Suami / Pria Dewasa', id:'Otto', on_id:'Fu / Fuu',
+   on_ex:'夫婦 (ふうふ) – suami istri · 夫人 (ふじん) – nyonya', kun_ex:'夫 (おっと) – suami',
+   sentence:'夫はまいあさはやくしごとにいきます。', sentence_id:'Suami saya pergi bekerja pagi-pagi setiap hari.'},
+  {n:106, char:'立', on:'リツ・リュウ', kun:'た', meaning:'Berdiri / Mendirikan', id:'Ta', on_id:'Ritsu / Ryuu',
+   on_ex:'立場 (たちば) – posisi / sudut pandang · 独立 (どくりつ) – merdeka', kun_ex:'立つ (たつ) – berdiri · 立てる (たてる) – mendirikan',
+   sentence:'えきのまえにひとがたくさん立っています。', sentence_id:'Banyak orang berdiri di depan stasiun.'},
+  {n:107, char:'首', on:'シュ', kun:'くび', meaning:'Leher / Kepala', id:'Kubi', on_id:'Shu',
+   on_ex:'首相 (しゅしょう) – perdana menteri · 首都 (しゅと) – ibu kota', kun_ex:'首 (くび) – leher · 首を振る (くびをふる) – menggeleng',
+   sentence:'首がいたくてうごけません。', sentence_id:'Leher saya sakit sehingga tidak bisa bergerak.'},
+  {n:108, char:'心', on:'シン', kun:'こころ', meaning:'Hati / Pikiran / Jiwa', id:'Kokoro', on_id:'Shin',
+   on_ex:'心配 (しんぱい) – khawatir · 中心 (ちゅうしん) – pusat', kun_ex:'心 (こころ) – hati · 心から (こころから) – dari hati',
+   sentence:'心からありがとうございます。', sentence_id:'Terima kasih dari lubuk hati saya.'},
+  {n:109, char:'食', on:'ショク', kun:'た・く', meaning:'Makan / Makanan', id:'Ta / Ku', on_id:'Shoku',
+   on_ex:'食事 (しょくじ) – makan / makanan · 食堂 (しょくどう) – kantin', kun_ex:'食べる (たべる) – makan · 食う (くう) – makan (kasar)',
+   sentence:'まいにちあさごはんを食べます。', sentence_id:'Saya makan sarapan setiap hari.'},
+  {n:110, char:'来', on:'ライ', kun:'く・き・こ', meaning:'Datang', id:'Ku / Ki / Ko', on_id:'Rai',
+   on_ex:'来年 (らいねん) – tahun depan · 来週 (らいしゅう) – minggu depan', kun_ex:'来る (くる) – datang · 来た (きた) – sudah datang',
+   sentence:'ともだちがわたしのいえに来ました。', sentence_id:'Teman saya datang ke rumah saya.'},
+  {n:111, char:'行', on:'コウ・ギョウ', kun:'い・おこな', meaning:'Pergi / Melakukan', id:'I / Okona', on_id:'Kou / Gyou',
+   on_ex:'行動 (こうどう) – tindakan · 銀行 (ぎんこう) – bank', kun_ex:'行く (いく) – pergi · 行う (おこなう) – melakukan',
+   sentence:'まいにちがっこうに行きます。', sentence_id:'Saya pergi ke sekolah setiap hari.'},
+  {n:112, char:'入', on:'ニュウ', kun:'い・はい', meaning:'Masuk', id:'I / Hai', on_id:'Nyuu',
+   on_ex:'入学 (にゅうがく) – masuk sekolah · 入口 (いりぐち) – pintu masuk', kun_ex:'入る (はいる) – masuk · 入れる (いれる) – memasukkan',
+   sentence:'へやに入るまえにノックしてください。', sentence_id:'Tolong mengetuk sebelum masuk ke kamar.'},
+  {n:113, char:'出', on:'シュツ・スイ', kun:'で・だ', meaning:'Keluar / Mengeluarkan', id:'De / Da', on_id:'Shutsu / Sui',
+   on_ex:'出口 (でぐち) – pintu keluar · 出発 (しゅっぱつ) – berangkat', kun_ex:'出る (でる) – keluar · 出す (だす) – mengeluarkan',
+   sentence:'あさはやくいえを出ます。', sentence_id:'Saya keluar rumah pagi-pagi.'},
+  {n:114, char:'書', on:'ショ', kun:'か', meaning:'Menulis / Buku', id:'Ka', on_id:'Sho',
+   on_ex:'書道 (しょどう) – kaligrafi · 図書館 (としょかん) – perpustakaan', kun_ex:'書く (かく) – menulis · 書き方 (かきかた) – cara menulis',
+   sentence:'にほんごでてがみを書きます。', sentence_id:'Saya menulis surat dalam bahasa Jepang.'},
+  {n:115, char:'言', on:'ゲン・ゴン', kun:'い・こと', meaning:'Berkata / Kata-kata', id:'I / Koto', on_id:'Gen / Gon',
+   on_ex:'言語 (げんご) – bahasa · 宣言 (せんげん) – pernyataan', kun_ex:'言う (いう) – berkata · 言葉 (ことば) – kata / bahasa',
+   sentence:'かれはいつもやさしいことばを言います。', sentence_id:'Dia selalu mengucapkan kata-kata yang baik.'},
+  {n:116, char:'見', on:'ケン', kun:'み', meaning:'Melihat', id:'Mi', on_id:'Ken',
+   on_ex:'見学 (けんがく) – kunjungan belajar · 意見 (いけん) – pendapat', kun_ex:'見る (みる) – melihat · 見える (みえる) – terlihat',
+   sentence:'まいばんテレビを見ます。', sentence_id:'Saya menonton TV setiap malam.'},
+  {n:117, char:'交', on:'コウ', kun:'まじ・ま', meaning:'Bergaul / Persilangan', id:'Maji / Ma', on_id:'Kou',
+   on_ex:'交通 (こうつう) – lalu lintas · 交換 (こうかん) – pertukaran', kun_ex:'交わる (まじわる) – bergaul · 交ざる (まざる) – bercampur',
+   sentence:'このみちはこうつうが交わるばしょです。', sentence_id:'Jalan ini adalah tempat persimpangan lalu lintas.'},
+  {n:118, char:'寺', on:'ジ', kun:'てら', meaning:'Kuil / Vihara', id:'Tera', on_id:'Ji',
+   on_ex:'寺院 (じいん) – kuil / vihara · 山寺 (やまでら) – kuil di gunung', kun_ex:'寺 (てら) – kuil Buddha',
+   sentence:'このまちにふるい寺があります。', sentence_id:'Di kota ini ada kuil tua.'},
+  {n:119, char:'何', on:'カ', kun:'なに・なん', meaning:'Apa / Berapa', id:'Nani / Nan', on_id:'Ka',
+   on_ex:'何故 (なぜ) – mengapa · 何気 (なにげ) – tanpa sadar', kun_ex:'何 (なに) – apa · 何 (なん) – berapa',
+   sentence:'きょうは何をたべましたか？', sentence_id:'Hari ini kamu makan apa?'},
+  {n:120, char:'友', on:'ユウ', kun:'とも', meaning:'Teman / Sahabat', id:'Tomo', on_id:'Yuu',
+   on_ex:'友人 (ゆうじん) – teman · 友好 (ゆうこう) – persahabatan', kun_ex:'友 (とも) – teman · 友達 (ともだち) – teman',
+   sentence:'友だちとこうえんであそびます。', sentence_id:'Saya bermain di taman bersama teman.'},
+  {n:121, char:'午', on:'ゴ', kun:'うま', meaning:'Siang / Kuda (zodiak)', id:'Uma', on_id:'Go',
+   on_ex:'午前 (ごぜん) – pagi / AM · 午後 (ごご) – sore / PM', kun_ex:'午 (うま) – tengah hari / kuda (zodiak)',
+   sentence:'午ごにともだちとひるごはんをたべます。', sentence_id:'Saya makan siang dengan teman pada siang hari.'},
+  {n:122, char:'白', on:'ハク・ビャク', kun:'しろ・しら', meaning:'Putih', id:'Shiro / Shira', on_id:'Haku / Byaku',
+   on_ex:'白紙 (はくし) – kertas putih · 告白 (こくはく) – pengakuan', kun_ex:'白い (しろい) – putih · 白ける (しらける) – membosankan',
+   sentence:'このはなはとても白くてきれいです。', sentence_id:'Bunga ini sangat putih dan indah.'},
+  {n:123, char:'回', on:'カイ・エ', kun:'まわ', meaning:'Putaran / Kali', id:'Mawa', on_id:'Kai / E',
+   on_ex:'回転 (かいてん) – rotasi · 今回 (こんかい) – kali ini', kun_ex:'回る (まわる) – berputar · 回す (まわす) – memutar',
+   sentence:'このコマはよく回ります。', sentence_id:'Gasing ini berputar dengan baik.'},
+  {n:124, char:'画', on:'ガ・カク', kun:'え', meaning:'Gambar / Lukisan', id:'E', on_id:'Ga / Kaku',
+   on_ex:'映画 (えいが) – film · 計画 (けいかく) – rencana', kun_ex:'画 (え) – gambar / lukisan',
+   sentence:'かれはじょうずに画をかきます。', sentence_id:'Dia pandai menggambar.'},
+  {n:125, char:'両', on:'リョウ', kun:'もろ', meaning:'Keduanya / Dua-duanya', id:'Moro', on_id:'Ryou',
+   on_ex:'両親 (りょうしん) – kedua orang tua · 両方 (りょうほう) – keduanya', kun_ex:'両 (もろ) – keduanya · 両手 (もろて) – kedua tangan',
+   sentence:'両てをつかってものをもちます。', sentence_id:'Saya mengangkat benda dengan kedua tangan.'},
+  {n:126, char:'校', on:'コウ', kun:'きわ', meaning:'Sekolah', id:'Kiwa', on_id:'Kou',
+   on_ex:'学校 (がっこう) – sekolah · 校長 (こうちょう) – kepala sekolah', kun_ex:'校 (きわ) – tepi / batas',
+   sentence:'まいにちがっこうに行きます。', sentence_id:'Saya pergi ke sekolah setiap hari.'},
+  {n:127, char:'飲', on:'イン', kun:'の', meaning:'Minum', id:'No', on_id:'In',
+   on_ex:'飲食 (いんしょく) – makan minum · 飲料 (いんりょう) – minuman', kun_ex:'飲む (のむ) – minum · 飲み物 (のみもの) – minuman',
+   sentence:'まいにちみずをたくさん飲みます。', sentence_id:'Saya minum banyak air setiap hari.'},
+  {n:128, char:'切', on:'セツ・サイ', kun:'き', meaning:'Memotong / Penting', id:'Ki', on_id:'Setsu / Sai',
+   on_ex:'大切 (たいせつ) – penting · 親切 (しんせつ) – ramah / baik hati', kun_ex:'切る (きる) – memotong · 切れる (きれる) – terpotong',
+   sentence:'はさみでかみを切ります。', sentence_id:'Saya memotong kertas dengan gunting.'},
+  {n:129, char:'新', on:'シン', kun:'あたら・あら', meaning:'Baru', id:'Atara / Ara', on_id:'Shin',
+   on_ex:'新聞 (しんぶん) – koran · 新幹線 (しんかんせん) – kereta cepat Shinkansen', kun_ex:'新しい (あたらしい) – baru · 新た (あらた) – baru / segar',
+   sentence:'あたらしいくつをかいました。', sentence_id:'Saya membeli sepatu baru.'},
+  {n:130, char:'親', on:'シン', kun:'おや・した', meaning:'Orang Tua / Akrab', id:'Oya / Shita', on_id:'Shin',
+   on_ex:'親切 (しんせつ) – ramah · 両親 (りょうしん) – kedua orang tua', kun_ex:'親 (おや) – orang tua · 親しい (したしい) – akrab',
+   sentence:'親はいつもわたしをおうえんしてくれます。', sentence_id:'Orang tua selalu mendukung saya.'},
+  {n:131, char:'引', on:'イン', kun:'ひ', meaning:'Menarik / Mengundurkan', id:'Hi', on_id:'In',
+   on_ex:'引力 (いんりょく) – gravitasi · 引退 (いんたい) – pensiun', kun_ex:'引く (ひく) – menarik · 引っ張る (ひっぱる) – menarik kuat',
+   sentence:'このドアはむこうに引いてください。', sentence_id:'Tolong tarik pintu ini ke arah sana.'},
+  {n:132, char:'強', on:'キョウ', kun:'つよ・し', meaning:'Kuat', id:'Tsuyo / Shi', on_id:'Kyou',
+   on_ex:'強調 (きょうちょう) – menekankan · 強制 (きょうせい) – paksaan', kun_ex:'強い (つよい) – kuat · 強いる (しいる) – memaksa',
+   sentence:'かれはとても強いせんしゅです。', sentence_id:'Dia adalah atlet yang sangat kuat.'},
+  {n:133, char:'弱', on:'ジャク', kun:'よわ', meaning:'Lemah', id:'Yowa', on_id:'Jaku',
+   on_ex:'弱点 (じゃくてん) – kelemahan · 弱者 (じゃくしゃ) – orang lemah', kun_ex:'弱い (よわい) – lemah · 弱まる (よわまる) – melemah',
+   sentence:'さいきんからだが弱くなりました。', sentence_id:'Belakangan ini badan saya menjadi lemah.'},
+  {n:134, char:'習', on:'シュウ', kun:'なら', meaning:'Belajar / Berlatih', id:'Nara', on_id:'Shuu',
+   on_ex:'練習 (れんしゅう) – latihan · 習慣 (しゅうかん) – kebiasaan', kun_ex:'習う (ならう) – belajar / berlatih',
+   sentence:'まいしゅうピアノを習っています。', sentence_id:'Saya belajar piano setiap minggu.'},
+  {n:135, char:'音', on:'オン・イン', kun:'おと・ね', meaning:'Suara / Bunyi', id:'Oto / Ne', on_id:'On / In',
+   on_ex:'音楽 (おんがく) – musik · 発音 (はつおん) – pengucapan', kun_ex:'音 (おと) – suara · 音色 (ねいろ) – warna suara',
+   sentence:'かわのおとがとてもきれいです。', sentence_id:'Suara sungai sangat indah.'},
+  {n:136, char:'暗', on:'アン', kun:'くら', meaning:'Gelap', id:'Kura', on_id:'An',
+   on_ex:'暗記 (あんき) – menghafal · 暗号 (あんごう) – sandi', kun_ex:'暗い (くらい) – gelap · 暗がり (くらがり) – tempat gelap',
+   sentence:'よるになるとそとがとても暗くなります。', sentence_id:'Ketika malam tiba, di luar menjadi sangat gelap.'},
+  {n:137, char:'買', on:'バイ', kun:'か', meaning:'Membeli', id:'Ka', on_id:'Bai',
+   on_ex:'売買 (ばいばい) – jual beli · 買収 (ばいしゅう) – akuisisi', kun_ex:'買う (かう) – membeli · 買い物 (かいもの) – belanja',
+   sentence:'スーパーでやさいを買いました。', sentence_id:'Saya membeli sayuran di supermarket.'},
+  {n:138, char:'員', on:'イン', kun:'かず', meaning:'Anggota / Pegawai', id:'Kazu', on_id:'In',
+   on_ex:'会員 (かいいん) – anggota · 店員 (てんいん) – pegawai toko', kun_ex:'員 (かず) – jumlah / anggota',
+   sentence:'かのじょはこのかいしゃの員です。', sentence_id:'Dia adalah pegawai perusahaan ini.'},
+  {n:139, char:'質', on:'シツ・シチ', kun:'たち', meaning:'Kualitas / Sifat', id:'Tachi', on_id:'Shitsu / Shichi',
+   on_ex:'質問 (しつもん) – pertanyaan · 品質 (ひんしつ) – kualitas produk', kun_ex:'質 (たち) – sifat / karakter',
+   sentence:'このせいひんはとてもいい質です。', sentence_id:'Produk ini berkualitas sangat baik.'},
+  {n:140, char:'貸', on:'タイ', kun:'か', meaning:'Meminjamkan', id:'Ka', on_id:'Tai',
+   on_ex:'貸借 (たいしゃく) – pinjam meminjam · 賃貸 (ちんたい) – sewa', kun_ex:'貸す (かす) – meminjamkan · 貸し出し (かしだし) – peminjaman',
+   sentence:'ともだちにほんをかしてあげました。', sentence_id:'Saya meminjamkan buku kepada teman.'},
+  {n:141, char:'短', on:'タン', kun:'みじか', meaning:'Pendek', id:'Mijika', on_id:'Tan',
+   on_ex:'短所 (たんしょ) – kekurangan · 短期 (たんき) – jangka pendek', kun_ex:'短い (みじかい) – pendek · 短さ (みじかさ) – panjang yang pendek',
+   sentence:'このえんぴつはとても短くなりました。', sentence_id:'Pensil ini sudah menjadi sangat pendek.'},
+  {n:142, char:'知', on:'チ', kun:'し', meaning:'Mengetahui / Tahu', id:'Shi', on_id:'Chi',
+   on_ex:'知識 (ちしき) – pengetahuan · 知人 (ちじん) – kenalan', kun_ex:'知る (しる) – mengetahui · 知らせる (しらせる) – memberitahu',
+   sentence:'あのひとのなまえをしっていますか？', sentence_id:'Apakah kamu tahu nama orang itu?'},
+  {n:143, char:'歌', on:'カ', kun:'うた', meaning:'Lagu / Menyanyi', id:'Uta', on_id:'Ka',
+   on_ex:'歌手 (かしゅ) – penyanyi · 国歌 (こっか) – lagu kebangsaan', kun_ex:'歌 (うた) – lagu · 歌う (うたう) – menyanyi',
+   sentence:'かれはたのしそうにうたを歌っています。', sentence_id:'Dia menyanyi dengan riang.'},
+  {n:144, char:'青', on:'セイ・ショウ', kun:'あお', meaning:'Biru / Hijau / Muda', id:'Ao', on_id:'Sei / Shou',
+   on_ex:'青春 (せいしゅん) – masa muda · 青年 (せいねん) – pemuda', kun_ex:'青い (あおい) – biru / hijau · 青空 (あおぞら) – langit biru',
+   sentence:'きょうはそらがとても青いです。', sentence_id:'Langit hari ini sangat biru.'},
+  {n:145, char:'赤', on:'セキ・シャク', kun:'あか', meaning:'Merah', id:'Aka', on_id:'Seki / Shaku',
+   on_ex:'赤道 (せきどう) – khatulistiwa · 赤字 (あかじ) – defisit / rugi', kun_ex:'赤い (あかい) – merah · 赤ちゃん (あかちゃん) – bayi',
+   sentence:'あのはなはとてもきれいな赤いろです。', sentence_id:'Bunga itu berwarna merah yang sangat indah.'},
+  {n:146, char:'気', on:'キ・ケ', kun:'いき', meaning:'Semangat / Udara / Perasaan', id:'Iki', on_id:'Ki / Ke',
+   on_ex:'元気 (げんき) – sehat · 天気 (てんき) – cuaca · 気持ち (きもち) – perasaan', kun_ex:'気 (いき) – napas / semangat',
+   sentence:'きょうはとてもいい気もちです。', sentence_id:'Hari ini perasaan saya sangat baik.'},
+  {n:147, char:'話', on:'ワ', kun:'はな・はなし', meaning:'Berbicara / Cerita', id:'Hana / Hanashi', on_id:'Wa',
+   on_ex:'会話 (かいわ) – percakapan · 電話 (でんわ) – telepon', kun_ex:'話す (はなす) – berbicara · 話 (はなし) – cerita',
+   sentence:'ともだちとたのしく話しました。', sentence_id:'Saya berbicara dengan gembira bersama teman.'},
+  {n:148, char:'読', on:'ドク・トク', kun:'よ', meaning:'Membaca', id:'Yo', on_id:'Doku / Toku',
+   on_ex:'読書 (どくしょ) – membaca buku · 音読 (おんどく) – membaca keras', kun_ex:'読む (よむ) – membaca · 読み方 (よみかた) – cara membaca',
+   sentence:'まいばんほんを読みます。', sentence_id:'Saya membaca buku setiap malam.'},
+  {n:149, char:'語', on:'ゴ', kun:'かた', meaning:'Bahasa / Kata', id:'Kata', on_id:'Go',
+   on_ex:'日本語 (にほんご) – bahasa Jepang · 英語 (えいご) – bahasa Inggris', kun_ex:'語る (かたる) – bercerita · 語り (かたり) – tuturan',
+   sentence:'にほん語をまいにちべんきょうしています。', sentence_id:'Saya belajar bahasa Jepang setiap hari.'},
+  {n:150, char:'持', on:'ジ', kun:'も', meaning:'Memegang / Memiliki', id:'Mo', on_id:'Ji',
+   on_ex:'持続 (じぞく) – berkelanjutan · 所持 (しょじ) – memiliki', kun_ex:'持つ (もつ) – memegang · 持ち物 (もちもの) – barang bawaan',
+   sentence:'かさをいつも持っています。', sentence_id:'Saya selalu membawa payung.'},
+  {n:151, char:'待', on:'タイ', kun:'ま', meaning:'Menunggu', id:'Ma', on_id:'Tai',
+   on_ex:'待機 (たいき) – siaga · 期待 (きたい) – harapan', kun_ex:'待つ (まつ) – menunggu · 待ち合わせ (まちあわせ) – janji bertemu',
+   sentence:'えきでともだちを待っています。', sentence_id:'Saya sedang menunggu teman di stasiun.'},
+  {n:152, char:'時', on:'ジ', kun:'とき', meaning:'Waktu / Jam', id:'Toki', on_id:'Ji',
+   on_ex:'時間 (じかん) – waktu · 時計 (とけい) – jam', kun_ex:'時 (とき) – waktu · 時々 (ときどき) – kadang-kadang',
+   sentence:'いまなん時ですか？', sentence_id:'Sekarang jam berapa?'},
+  {n:153, char:'草', on:'ソウ', kun:'くさ', meaning:'Rumput / Tumbuhan', id:'Kusa', on_id:'Sou',
+   on_ex:'草原 (そうげん) – padang rumput · 草案 (そうあん) – rancangan', kun_ex:'草 (くさ) – rumput · 草花 (くさはな) – bunga liar',
+   sentence:'にわに草がたくさんはえています。', sentence_id:'Banyak rumput tumbuh di halaman.'},
+  {n:154, char:'花', on:'カ', kun:'はな', meaning:'Bunga', id:'Hana', on_id:'Ka',
+   on_ex:'花火 (はなび) – kembang api · 花瓶 (かびん) – vas bunga', kun_ex:'花 (はな) – bunga · 花びら (はなびら) – kelopak bunga',
+   sentence:'はるになるとたくさんの花がさきます。', sentence_id:'Ketika musim semi tiba banyak bunga yang mekar.'},
+  {n:155, char:'茶', on:'チャ・サ', kun:'ちゃ', meaning:'Teh', id:'Cha', on_id:'Cha / Sa',
+   on_ex:'茶道 (さどう) – upacara minum teh · 喫茶店 (きっさてん) – kafe', kun_ex:'お茶 (おちゃ) – teh · 茶色 (ちゃいろ) – warna coklat',
+   sentence:'まいあさあたたかいお茶をのみます。', sentence_id:'Saya minum teh hangat setiap pagi.'},
+  {n:156, char:'薬', on:'ヤク', kun:'くすり', meaning:'Obat', id:'Kusuri', on_id:'Yaku',
+   on_ex:'薬局 (やっきょく) – apotek · 薬品 (やくひん) – bahan kimia / obat', kun_ex:'薬 (くすり) – obat',
+   sentence:'かぜをひいたので薬をのみました。', sentence_id:'Saya minum obat karena masuk angin.'},
+  {n:157, char:'菜', on:'サイ', kun:'な', meaning:'Sayuran / Lauk', id:'Na', on_id:'Sai',
+   on_ex:'野菜 (やさい) – sayuran · 菜食 (さいしょく) – vegetarian', kun_ex:'菜 (な) – sayuran · 菜の花 (なのはな) – bunga lobak',
+   sentence:'からだにいいので毎にちやさいを食べます。', sentence_id:'Saya makan sayuran setiap hari karena baik untuk tubuh.'},
+  {n:158, char:'洗', on:'セン', kun:'あら', meaning:'Mencuci', id:'Ara', on_id:'Sen',
+   on_ex:'洗濯 (せんたく) – mencuci pakaian · 洗面 (せんめん) – mencuci muka', kun_ex:'洗う (あらう) – mencuci · 洗い物 (あらいもの) – cucian',
+   sentence:'ごはんのまえにてをきれいに洗います。', sentence_id:'Saya mencuci tangan bersih sebelum makan.'},
+  {n:159, char:'注', on:'チュウ', kun:'そそ・つ', meaning:'Menuangkan / Memperhatikan', id:'Soso / Tsu', on_id:'Chuu',
+   on_ex:'注意 (ちゅうい) – perhatian / hati-hati · 注文 (ちゅうもん) – memesan', kun_ex:'注ぐ (そそぐ) – menuangkan · 注射 (ちゅうしゃ) – suntikan',
+   sentence:'くるまにきをつけてください。道に注意！', sentence_id:'Hati-hati dengan mobil. Perhatikan jalan!'},
+  {n:160, char:'泣', on:'キュウ', kun:'な', meaning:'Menangis', id:'Na', on_id:'Kyuu',
+   on_ex:'号泣 (ごうきゅう) – menangis tersedu · 泣訴 (きゅうそ) – mengadu sambil menangis', kun_ex:'泣く (なく) – menangis · 泣き声 (なきごえ) – suara tangisan',
+   sentence:'かなしいえいがをみてたくさん泣きました。', sentence_id:'Saya banyak menangis menonton film yang sedih.'},
+  {n:161, char:'浴', on:'ヨク', kun:'あ', meaning:'Mandi / Berendam', id:'A', on_id:'Yoku',
+   on_ex:'入浴 (にゅうよく) – mandi · 浴室 (よくしつ) – kamar mandi · 日光浴 (にっこうよく) – berjemur', kun_ex:'浴びる (あびる) – mandi / terkena',
+   sentence:'まいばんおふろに入って浴びます。', sentence_id:'Saya mandi setiap malam.'},
+  {n:162, char:'洋', on:'ヨウ', kun:'うみ', meaning:'Barat / Samudra', id:'Umi', on_id:'You',
+   on_ex:'西洋 (せいよう) – Barat / Eropa · 洋食 (ようしょく) – masakan Barat', kun_ex:'洋 (うみ) – samudra besar',
+   sentence:'きょうのひるごはんは洋しょくです。', sentence_id:'Makan siang hari ini adalah masakan Barat.'},
+  {n:163, char:'池', on:'チ', kun:'いけ', meaning:'Kolam / Danau Kecil', id:'Ike', on_id:'Chi',
+   on_ex:'電池 (でんち) – baterai · 池沼 (ちしょう) – kolam dan rawa', kun_ex:'池 (いけ) – kolam · 池のほとり (いけのほとり) – tepi kolam',
+   sentence:'こうえんの池にたくさんのさかながいます。', sentence_id:'Ada banyak ikan di kolam taman.'},
+  {n:164, char:'地', on:'チ・ジ', kun:'つち', meaning:'Tanah / Bumi / Tempat', id:'Tsuchi', on_id:'Chi / Ji',
+   on_ex:'地図 (ちず) – peta · 地下 (ちか) – bawah tanah · 地震 (じしん) – gempa bumi', kun_ex:'地 (つち) – tanah',
+   sentence:'この地はとてもひろいです。', sentence_id:'Tanah ini sangat luas.'},
+  {n:165, char:'姉', on:'シ', kun:'あね', meaning:'Kakak Perempuan', id:'Ane', on_id:'Shi',
+   on_ex:'姉妹 (しまい) – kakak adik perempuan · 義姉 (ぎし) – kakak ipar perempuan', kun_ex:'姉 (あね) – kakak perempuan · お姉さん (おねえさん) – kakak perempuan (hormat)',
+   sentence:'姉はだいがくでべんきょうしています。', sentence_id:'Kakak perempuan saya sedang kuliah di universitas.'},
+  {n:166, char:'妹', on:'マイ', kun:'いもうと', meaning:'Adik Perempuan', id:'Imouto', on_id:'Mai',
+   on_ex:'姉妹 (しまい) – kakak adik perempuan · 義妹 (ぎまい) – adik ipar perempuan', kun_ex:'妹 (いもうと) – adik perempuan',
+   sentence:'妹はまだしょうがっこうのがくせいです。', sentence_id:'Adik perempuan saya masih siswa SD.'},
+  {n:167, char:'止', on:'シ', kun:'と・や', meaning:'Berhenti / Menghentikan', id:'To / Ya', on_id:'Shi',
+   on_ex:'停止 (ていし) – penghentian · 禁止 (きんし) – larangan', kun_ex:'止まる (とまる) – berhenti · 止める (やめる) – menghentikan',
+   sentence:'あかしんごうで車が止まります。', sentence_id:'Mobil berhenti di lampu merah.'},
+  {n:168, char:'歩', on:'ホ・ブ', kun:'ある・あゆ', meaning:'Berjalan / Langkah', id:'Aru / Ayu', on_id:'Ho / Bu',
+   on_ex:'散歩 (さんぽ) – jalan-jalan · 歩道 (ほどう) – trotoar', kun_ex:'歩く (あるく) – berjalan · 歩む (あゆむ) – melangkah',
+   sentence:'まいにちえきまで歩いていきます。', sentence_id:'Saya berjalan ke stasiun setiap hari.'},
+  {n:169, char:'走', on:'ソウ', kun:'はし', meaning:'Berlari', id:'Hashi', on_id:'Sou',
+   on_ex:'走行 (そうこう) – perjalanan · 脱走 (だっそう) – melarikan diri', kun_ex:'走る (はしる) – berlari · 走り回る (はしりまわる) – berlari-lari',
+   sentence:'まいあさこうえんを走ります。', sentence_id:'Saya berlari di taman setiap pagi.'},
+  {n:170, char:'起', on:'キ', kun:'お', meaning:'Bangun / Terjadi', id:'O', on_id:'Ki',
+   on_ex:'起床 (きしょう) – bangun tidur · 起源 (きげん) – asal-usul', kun_ex:'起きる (おきる) – bangun · 起こす (おこす) – membangunkan',
+   sentence:'まいあさろくじに起きます。', sentence_id:'Saya bangun jam enam setiap pagi.'},
+  {n:171, char:'動', on:'ドウ', kun:'うご', meaning:'Bergerak / Menggerakkan', id:'Ugo', on_id:'Dou',
+   on_ex:'運動 (うんどう) – olahraga · 動物 (どうぶつ) – hewan', kun_ex:'動く (うごく) – bergerak · 動かす (うごかす) – menggerakkan',
+   sentence:'からだを動かすのはけんこうにいいです。', sentence_id:'Menggerakkan tubuh baik untuk kesehatan.'},
+  {n:172, char:'働', on:'ドウ', kun:'はたら', meaning:'Bekerja', id:'Hatara', on_id:'Dou',
+   on_ex:'労働 (ろうどう) – kerja / buruh · 働き (はたらき) – pekerjaan / fungsi', kun_ex:'働く (はたらく) – bekerja',
+   sentence:'ちちはまいにちいっしょうけんめい働いています。', sentence_id:'Ayah bekerja keras setiap hari.'},
+  {n:173, char:'急', on:'キュウ', kun:'いそ', meaning:'Cepat / Mendadak / Mendesak', id:'Iso', on_id:'Kyuu',
+   on_ex:'急行 (きゅうこう) – kereta ekspres · 緊急 (きんきゅう) – darurat', kun_ex:'急ぐ (いそぐ) – terburu-buru · 急に (きゅうに) – tiba-tiba',
+   sentence:'じかんがないのでいそいで急ぎます。', sentence_id:'Saya tergesa-gesa karena tidak ada waktu.'},
+  {n:174, char:'思', on:'シ', kun:'おも', meaning:'Berpikir / Merasa', id:'Omo', on_id:'Shi',
+   on_ex:'思想 (しそう) – pemikiran · 思考 (しこう) – proses berpikir', kun_ex:'思う (おもう) – berpikir / merasa · 思い出 (おもいで) – kenangan',
+   sentence:'かれのことをいつも思っています。', sentence_id:'Saya selalu memikirkan dia.'},
+  {n:175, char:'集', on:'シュウ', kun:'あつ', meaning:'Berkumpul / Mengumpulkan', id:'Atsu', on_id:'Shuu',
+   on_ex:'集合 (しゅうごう) – berkumpul · 収集 (しゅうしゅう) – koleksi', kun_ex:'集まる (あつまる) – berkumpul · 集める (あつめる) – mengumpulkan',
+   sentence:'こうえんにひとがたくさん集まっています。', sentence_id:'Banyak orang berkumpul di taman.'},
+  {n:176, char:'進', on:'シン', kun:'すす', meaning:'Maju / Melanjutkan', id:'Susu', on_id:'Shin',
+   on_ex:'前進 (ぜんしん) – maju ke depan · 進歩 (しんぽ) – kemajuan', kun_ex:'進む (すすむ) – maju · 進める (すすめる) – memajukan',
+   sentence:'まっすぐ進んでください。', sentence_id:'Tolong jalan lurus terus.'},
+  {n:177, char:'運', on:'ウン', kun:'はこ', meaning:'Membawa / Nasib / Olahraga', id:'Hako', on_id:'Un',
+   on_ex:'運動 (うんどう) – olahraga · 運転 (うんてん) – mengemudi · 運命 (うんめい) – nasib', kun_ex:'運ぶ (はこぶ) – membawa / mengangkut',
+   sentence:'おもいにもつを運ぶのをてつだいます。', sentence_id:'Saya membantu membawa barang bawaan yang berat.'},
+  {n:178, char:'通', on:'ツウ・ツ', kun:'とお・かよ', meaning:'Melewati / Melalui / Lalu lintas', id:'Too / Kayo', on_id:'Tsuu / Tsu',
+   on_ex:'通学 (つうがく) – pergi sekolah · 交通 (こうつう) – lalu lintas', kun_ex:'通る (とおる) – melewati · 通う (かよう) – pergi pulang',
+   sentence:'まいにちこのみちを通って学校にいきます。', sentence_id:'Saya melewati jalan ini setiap hari untuk pergi ke sekolah.'},
+  {n:179, char:'押', on:'オウ', kun:'お', meaning:'Mendorong / Menekan', id:'O', on_id:'Ou',
+   on_ex:'押収 (おうしゅう) – penyitaan · 押印 (おういん) – membubuhkan stempel', kun_ex:'押す (おす) – mendorong / menekan · 押さえる (おさえる) – menahan',
+   sentence:'このボタンを押してください。', sentence_id:'Tolong tekan tombol ini.'},
+  {n:180, char:'借', on:'シャク', kun:'か', meaning:'Meminjam', id:'Ka', on_id:'Shaku',
+   on_ex:'借用 (しゃくよう) – peminjaman · 借金 (しゃっきん) – hutang', kun_ex:'借りる (かりる) – meminjam · 借り物 (かりもの) – barang pinjaman',
+   sentence:'ともだちからほんを借りました。', sentence_id:'Saya meminjam buku dari teman.'},
+  {n:181, char:'売', on:'バイ', kun:'う', meaning:'Menjual', id:'U', on_id:'Bai',
+   on_ex:'売買 (ばいばい) – jual beli · 販売 (はんばい) – penjualan', kun_ex:'売る (うる) – menjual · 売り場 (うりば) – tempat penjualan',
+   sentence:'このみせではやさいを売っています。', sentence_id:'Toko ini menjual sayuran.'},
+  {n:182, char:'帰', on:'キ', kun:'かえ', meaning:'Pulang / Kembali', id:'Kae', on_id:'Ki',
+   on_ex:'帰国 (きこく) – pulang ke negara asal · 帰宅 (きたく) – pulang ke rumah', kun_ex:'帰る (かえる) – pulang · 帰り (かえり) – perjalanan pulang',
+   sentence:'しごとがおわったらすぐいえに帰ります。', sentence_id:'Saya langsung pulang ke rumah setelah pekerjaan selesai.'},
+  {n:183, char:'終', on:'シュウ', kun:'お', meaning:'Selesai / Berakhir', id:'O', on_id:'Shuu',
+   on_ex:'終了 (しゅうりょう) – selesai · 最終 (さいしゅう) – terakhir', kun_ex:'終わる (おわる) – selesai / berakhir · 終える (おえる) – menyelesaikan',
+   sentence:'しゅくだいが終わってからあそびます。', sentence_id:'Saya bermain setelah pekerjaan rumah selesai.'},
+  {n:184, char:'始', on:'シ', kun:'はじ', meaning:'Mulai / Dimulai', id:'Haji', on_id:'Shi',
+   on_ex:'開始 (かいし) – permulaan · 始業 (しぎょう) – mulai kerja / sekolah', kun_ex:'始まる (はじまる) – dimulai · 始める (はじめる) – memulai',
+   sentence:'じゅぎょうがはちじに始まります。', sentence_id:'Pelajaran dimulai jam delapan.'},
+  {n:185, char:'去', on:'キョ・コ', kun:'さ', meaning:'Pergi / Berlalu / Lalu', id:'Sa', on_id:'Kyo / Ko',
+   on_ex:'去年 (きょねん) – tahun lalu · 過去 (かこ) – masa lalu', kun_ex:'去る (さる) – pergi / berlalu',
+   sentence:'去ねんにほんにいきました。', sentence_id:'Tahun lalu saya pergi ke Jepang.'},
+  {n:186, char:'死', on:'シ', kun:'し', meaning:'Mati / Meninggal', id:'Shi', on_id:'Shi',
+   on_ex:'死亡 (しぼう) – kematian · 死体 (したい) – mayat', kun_ex:'死ぬ (しぬ) – mati / meninggal · 死に際 (しにぎわ) – saat menjelang ajal',
+   sentence:'そのはなはみずをやらないと死んでしまいます。', sentence_id:'Bunga itu akan mati jika tidak disiram.'},
+  {n:187, char:'遠', on:'エン', kun:'とお', meaning:'Jauh', id:'Too', on_id:'En',
+   on_ex:'遠足 (えんそく) – piknik · 遠慮 (えんりょ) – sungkan / menahan diri', kun_ex:'遠い (とおい) – jauh · 遠く (とおく) – dari jauh',
+   sentence:'えきからいえまでとても遠いです。', sentence_id:'Dari stasiun ke rumah sangat jauh.'},
+  {n:188, char:'近', on:'キン', kun:'ちか', meaning:'Dekat', id:'Chika', on_id:'Kin',
+   on_ex:'近所 (きんじょ) – tetangga · 最近 (さいきん) – belakangan ini', kun_ex:'近い (ちかい) – dekat · 近く (ちかく) – di dekat',
+   sentence:'えきの近くにスーパーがあります。', sentence_id:'Ada supermarket di dekat stasiun.'},
+  {n:189, char:'重', on:'ジュウ・チョウ', kun:'おも・かさ', meaning:'Berat / Penting', id:'Omo / Kasa', on_id:'Juu / Chou',
+   on_ex:'重要 (じゅうよう) – penting · 体重 (たいじゅう) – berat badan', kun_ex:'重い (おもい) – berat · 重なる (かさなる) – bertumpuk',
+   sentence:'このにもつはとても重いです。', sentence_id:'Barang bawaan ini sangat berat.'},
+  {n:190, char:'軽', on:'ケイ', kun:'かる', meaning:'Ringan', id:'Karu', on_id:'Kei',
+   on_ex:'軽食 (けいしょく) – makanan ringan · 軽率 (けいそつ) – ceroboh', kun_ex:'軽い (かるい) – ringan · 軽く (かるく) – dengan ringan',
+   sentence:'このかばんはとても軽くてべんりです。', sentence_id:'Tas ini sangat ringan dan praktis.'},
+  {n:191, char:'温', on:'オン', kun:'あたた', meaning:'Hangat / Suhu', id:'Atata', on_id:'On',
+   on_ex:'温度 (おんど) – suhu · 気温 (きおん) – suhu udara', kun_ex:'温かい (あたたかい) – hangat · 温める (あたためる) – menghangatkan',
+   sentence:'おふろのおゆが温かくてきもちいいです。', sentence_id:'Air bak mandi yang hangat terasa nyaman.'},
+  {n:192, char:'冷', on:'レイ', kun:'つめ・さ・ひ', meaning:'Dingin / Sejuk', id:'Tsume / Sa / Hi', on_id:'Rei',
+   on_ex:'冷蔵庫 (れいぞうこ) – kulkas · 冷静 (れいせい) – tenang / dingin kepala', kun_ex:'冷たい (つめたい) – dingin · 冷える (ひえる) – mendingin',
+   sentence:'このみずはとても冷たくておいしいです。', sentence_id:'Air ini sangat dingin dan segar.'},
+  {n:193, char:'熱', on:'ネツ', kun:'あつ', meaning:'Panas / Demam', id:'Atsu', on_id:'Netsu',
+   on_ex:'熱心 (ねっしん) – bersemangat · 発熱 (はつねつ) – demam', kun_ex:'熱い (あつい) – panas · 熱さ (あつさ) – kepanasan',
+   sentence:'このスープはとても熱いのできをつけてください。', sentence_id:'Tolong hati-hati karena sup ini sangat panas.'},
+  {n:194, char:'暑', on:'ショ', kun:'あつ', meaning:'Panas (cuaca)', id:'Atsu', on_id:'Sho',
+   on_ex:'暑気 (しょき) – panas musim panas · 猛暑 (もうしょ) – terik sekali', kun_ex:'暑い (あつい) – panas (udara) · 暑さ (あつさ) – teriknya panas',
+   sentence:'なつはとても暑くてあせをかきます。', sentence_id:'Musim panas sangat panas sampai berkeringat.'},
+  {n:195, char:'寒', on:'カン', kun:'さむ', meaning:'Dingin (cuaca)', id:'Samu', on_id:'Kan',
+   on_ex:'寒冷 (かんれい) – dingin · 寒気 (さむけ) – kedinginan / meriang', kun_ex:'寒い (さむい) – dingin (udara) · 寒さ (さむさ) – dinginnya cuaca',
+   sentence:'ふゆはとても寒いのでコートをきます。', sentence_id:'Musim dingin sangat dingin jadi saya memakai mantel.'},
+  {n:196, char:'暖', on:'ダン', kun:'あたた', meaning:'Hangat (cuaca)', id:'Atata', on_id:'Dan',
+   on_ex:'暖房 (だんぼう) – pemanas ruangan · 温暖 (おんだん) – hangat / ramah', kun_ex:'暖かい (あたたかい) – hangat (udara) · 暖める (あたためる) – menghangatkan',
+   sentence:'はるはとても暖かくてすごしやすいです。', sentence_id:'Musim semi sangat hangat dan nyaman.'},
+  {n:197, char:'特', on:'トク', kun:'とく', meaning:'Khusus / Istimewa', id:'Toku', on_id:'Toku',
+   on_ex:'特別 (とくべつ) – khusus · 特徴 (とくちょう) – ciri khas', kun_ex:'特に (とくに) – terutama / khususnya',
+   sentence:'きょうはとくにたのしいひでした。', sentence_id:'Hari ini adalah hari yang sangat menyenangkan.'},
+  {n:198, char:'別', on:'ベツ', kun:'わか', meaning:'Terpisah / Berbeda', id:'Waka', on_id:'Betsu',
+   on_ex:'特別 (とくべつ) – khusus · 別々 (べつべつ) – masing-masing / terpisah', kun_ex:'別れる (わかれる) – berpisah · 別に (べつに) – secara terpisah',
+   sentence:'それはまったく別のはなしです。', sentence_id:'Itu adalah cerita yang sama sekali berbeda.'},
+  {n:199, char:'有', on:'ユウ・ウ', kun:'あ', meaning:'Ada / Memiliki', id:'A', on_id:'Yuu / U',
+   on_ex:'有名 (ゆうめい) – terkenal · 有効 (ゆうこう) – berlaku / efektif', kun_ex:'有る (ある) – ada · 有難い (ありがたい) – berterima kasih',
+   sentence:'このまちにはゆうめいなおてらが有ります。', sentence_id:'Di kota ini ada kuil yang terkenal.'},
+  {n:200, char:'便', on:'ベン・ビン', kun:'たよ', meaning:'Nyaman / Pos / Kiriman', id:'Tayo', on_id:'Ben / Bin',
+   on_ex:'便利 (べんり) – praktis · 郵便 (ゆうびん) – pos / surat', kun_ex:'便り (たより) – kabar / surat',
+   sentence:'このえきはとても便りがよいです。', sentence_id:'Stasiun ini sangat strategis.'},
+  {n:201, char:'利', on:'リ', kun:'き', meaning:'Keuntungan / Tajam', id:'Ki', on_id:'Ri',
+   on_ex:'便利 (べんり) – praktis · 利用 (りよう) – penggunaan / memanfaatkan', kun_ex:'利く (きく) – berfungsi / tajam · 利き手 (ききて) – tangan dominan',
+   sentence:'このどうぐはとても利きます。', sentence_id:'Alat ini sangat berguna.'},
+  {n:202, char:'低', on:'テイ', kun:'ひく', meaning:'Rendah / Pendek', id:'Hiku', on_id:'Tei',
+   on_ex:'低下 (ていか) – penurunan · 最低 (さいてい) – paling rendah / minimal', kun_ex:'低い (ひくい) – rendah · 低く (ひくく) – dengan rendah',
+   sentence:'このたなはひくくてとどきやすいです。', sentence_id:'Rak ini rendah sehingga mudah dijangkau.'},
+  {n:203, char:'広', on:'コウ', kun:'ひろ', meaning:'Luas / Lebar', id:'Hiro', on_id:'Kou',
+   on_ex:'広場 (ひろば) – lapangan / plaza · 広告 (こうこく) – iklan', kun_ex:'広い (ひろい) – luas · 広げる (ひろげる) – melebarkan',
+   sentence:'このこうえんはとても広くてきもちがいいです。', sentence_id:'Taman ini sangat luas dan menyenangkan.'},
+  {n:204, char:'良', on:'リョウ', kun:'よ', meaning:'Baik / Bagus', id:'Yo', on_id:'Ryou',
+   on_ex:'良心 (りょうしん) – hati nurani · 良好 (りょうこう) – baik / bagus', kun_ex:'良い (よい) – baik · 良さ (よさ) – kebaikan',
+   sentence:'このえいがはとても良いとおもいます。', sentence_id:'Saya pikir film ini sangat bagus.'},
+  {n:205, char:'悪', on:'アク・オ', kun:'わる', meaning:'Buruk / Jahat', id:'Waru', on_id:'Aku / O',
+   on_ex:'悪化 (あっか) – memburuk · 悪意 (あくい) – niat jahat', kun_ex:'悪い (わるい) – buruk / jahat · 悪さ (わるさ) – kenakalan',
+   sentence:'きょうはてんきが悪くてあめがふっています。', sentence_id:'Cuaca hari ini buruk dan sedang hujan.'},
+  {n:206, char:'変', on:'ヘン', kun:'か', meaning:'Berubah / Aneh', id:'Ka', on_id:'Hen',
+   on_ex:'変化 (へんか) – perubahan · 大変 (たいへん) – susah payah / sangat', kun_ex:'変わる (かわる) – berubah · 変える (かえる) – mengubah',
+   sentence:'さいきんてんきがよく変わります。', sentence_id:'Belakangan ini cuaca sering berubah.'},
+  {n:207, char:'使', on:'シ', kun:'つか', meaning:'Menggunakan / Memakai', id:'Tsuka', on_id:'Shi',
+   on_ex:'使用 (しよう) – penggunaan · 大使 (たいし) – duta besar', kun_ex:'使う (つかう) – menggunakan · 使い方 (つかいかた) – cara pemakaian',
+   sentence:'まいにちじしょを使ってべんきょうします。', sentence_id:'Saya belajar menggunakan kamus setiap hari.'},
+  {n:208, char:'作', on:'サク・サ', kun:'つく', meaning:'Membuat / Menciptakan', id:'Tsuku', on_id:'Saku / Sa',
+   on_ex:'作品 (さくひん) – karya · 作業 (さぎょう) – pekerjaan / operasi', kun_ex:'作る (つくる) – membuat · 作り方 (つくりかた) – cara membuat',
+   sentence:'はははまいにちおいしいりょうりを作ります。', sentence_id:'Ibu membuat masakan enak setiap hari.'},
+  {n:209, char:'化', on:'カ・ケ', kun:'ば', meaning:'Berubah / Transformasi', id:'Ba', on_id:'Ka / Ke',
+   on_ex:'変化 (へんか) – perubahan · 文化 (ぶんか) – budaya', kun_ex:'化ける (ばける) – berubah wujud · 化粧 (けしょう) – make-up',
+   sentence:'きせつがかわると自然がきれいに化けます。', sentence_id:'Ketika musim berganti alam berubah menjadi indah.'},
+  {n:210, char:'今', on:'コン・キン', kun:'いま', meaning:'Sekarang / Kini', id:'Ima', on_id:'Kon / Kin',
+   on_ex:'今日 (きょう) – hari ini · 今週 (こんしゅう) – minggu ini', kun_ex:'今 (いま) – sekarang · 今ごろ (いまごろ) – sekitar sekarang',
+   sentence:'今なんじですか？', sentence_id:'Sekarang jam berapa?'},
+  {n:211, char:'会', on:'カイ・エ', kun:'あ', meaning:'Bertemu / Pertemuan', id:'A', on_id:'Kai / E',
+   on_ex:'会社 (かいしゃ) – perusahaan · 会議 (かいぎ) – rapat', kun_ex:'会う (あう) – bertemu · 会い方 (あいかた) – cara bertemu',
+   sentence:'えきのまえでともだちに会いました。', sentence_id:'Saya bertemu teman di depan stasiun.'},
+  {n:212, char:'要', on:'ヨウ', kun:'い・かなめ', meaning:'Perlu / Penting / Inti', id:'I / Kaname', on_id:'You',
+   on_ex:'重要 (じゅうよう) – penting · 必要 (ひつよう) – diperlukan', kun_ex:'要る (いる) – diperlukan · 要 (かなめ) – inti / kunci',
+   sentence:'このしごとにはにほんごがとても要ります。', sentence_id:'Pekerjaan ini sangat memerlukan bahasa Jepang.'},
+  {n:213, char:'電', on:'デン', kun:'いなずま', meaning:'Listrik / Petir', id:'Inazuma', on_id:'Den',
+   on_ex:'電車 (でんしゃ) – kereta listrik · 電話 (でんわ) – telepon', kun_ex:'電 (いなずま) – kilat / petir',
+   sentence:'まいあさ電しゃでがっこうにいきます。', sentence_id:'Saya pergi ke sekolah naik kereta setiap pagi.'},
+  {n:214, char:'雪', on:'セツ', kun:'ゆき', meaning:'Salju', id:'Yuki', on_id:'Setsu',
+   on_ex:'雪山 (ゆきやま) – gunung bersalju · 降雪 (こうせつ) – turunnya salju', kun_ex:'雪 (ゆき) – salju · 雪だるま (ゆきだるま) – manusia salju',
+   sentence:'ふゆになるとやまに雪がつもります。', sentence_id:'Ketika musim dingin tiba salju menumpuk di gunung.'},
+  {n:215, char:'料', on:'リョウ', kun:'はかる', meaning:'Bahan / Biaya / Tarif', id:'Hakaru', on_id:'Ryou',
+   on_ex:'料理 (りょうり) – masakan · 料金 (りょうきん) – tarif / biaya', kun_ex:'料る (はかる) – memperkirakan / mengukur',
+   sentence:'このレストランの料きんはやすいです。', sentence_id:'Tarif restoran ini murah.'},
+  {n:216, char:'科', on:'カ', kun:'しな', meaning:'Ilmu / Jurusan / Cabang', id:'Shina', on_id:'Ka',
+   on_ex:'科学 (かがく) – ilmu pengetahuan · 教科書 (きょうかしょ) – buku pelajaran', kun_ex:'科 (しな) – jenis / cabang',
+   sentence:'かれはりか科がとくいです。', sentence_id:'Dia pandai dalam pelajaran IPA.'},
+  {n:217, char:'腹', on:'フク', kun:'はら', meaning:'Perut', id:'Hara', on_id:'Fuku',
+   on_ex:'腹痛 (ふくつう) – sakit perut · 空腹 (くうふく) – lapar', kun_ex:'腹 (はら) – perut · 腹が立つ (はらがたつ) – marah',
+   sentence:'おひるをたべていないのでとても腹がへっています。', sentence_id:'Perut saya sangat lapar karena belum makan siang.'},
+  {n:218, char:'豚', on:'トン', kun:'ぶた', meaning:'Babi / Daging Babi', id:'Buta', on_id:'Ton',
+   on_ex:'豚肉 (ぶたにく) – daging babi · 豚カツ (とんかつ) – tonkatsu', kun_ex:'豚 (ぶた) – babi · 豚小屋 (ぶたごや) – kandang babi',
+   sentence:'豚にくをつかったりょうりがすきです。', sentence_id:'Saya suka masakan yang menggunakan daging babi.'},
+  {n:219, char:'説', on:'セツ・ゼイ', kun:'と', meaning:'Menjelaskan / Teori', id:'To', on_id:'Setsu / Zei',
+   on_ex:'説明 (せつめい) – penjelasan · 小説 (しょうせつ) – novel', kun_ex:'説く (とく) – menjelaskan · 説き伏せる (ときふせる) – meyakinkan',
+   sentence:'せんせいがわかりやすくせつめいを説きました。', sentence_id:'Guru menjelaskan dengan mudah dipahami.'},
+  {n:220, char:'計', on:'ケイ', kun:'はか', meaning:'Menghitung / Rencana / Jam', id:'Haka', on_id:'Kei',
+   on_ex:'時計 (とけい) – jam · 計画 (けいかく) – rencana', kun_ex:'計る (はかる) – mengukur · 計らう (はからう) – mempertimbangkan',
+   sentence:'かべにかかっているとけい計がこわれています。', sentence_id:'Jam yang tergantung di dinding rusak.'},
+  {n:221, char:'病', on:'ビョウ・ヘイ', kun:'や', meaning:'Sakit / Penyakit', id:'Ya', on_id:'Byou / Hei',
+   on_ex:'病院 (びょういん) – rumah sakit · 病気 (びょうき) – sakit / penyakit', kun_ex:'病む (やむ) – sakit · 病 (やまい) – penyakit',
+   sentence:'病きになったのでびょういんにいきました。', sentence_id:'Saya pergi ke rumah sakit karena sakit.'},
+  {n:222, char:'痛', on:'ツウ', kun:'いた', meaning:'Sakit / Nyeri', id:'Ita', on_id:'Tsuu',
+   on_ex:'頭痛 (ずつう) – sakit kepala · 苦痛 (くつう) – penderitaan / rasa sakit', kun_ex:'痛い (いたい) – sakit · 痛み (いたみ) – rasa sakit',
+   sentence:'あたまがとても痛くてなにもできません。', sentence_id:'Kepala saya sangat sakit sehingga tidak bisa apa-apa.'},
+  {n:223, char:'送', on:'ソウ', kun:'おく', meaning:'Mengirim / Mengantarkan', id:'Oku', on_id:'Sou',
+   on_ex:'送信 (そうしん) – pengiriman pesan · 放送 (ほうそう) – siaran', kun_ex:'送る (おくる) – mengirim · 送り仮名 (おくりがな) – okurigana',
+   sentence:'ともだちにプレゼントを送りました。', sentence_id:'Saya mengirimkan hadiah kepada teman.'},
+  {n:224, char:'返', on:'ヘン', kun:'かえ', meaning:'Mengembalikan / Membalas', id:'Kae', on_id:'Hen',
+   on_ex:'返事 (へんじ) – balasan · 返品 (へんぴん) – pengembalian barang', kun_ex:'返す (かえす) – mengembalikan · 返る (かえる) – kembali',
+   sentence:'かりたほんをともだちに返しました。', sentence_id:'Saya mengembalikan buku yang dipinjam kepada teman.'},
+  {n:225, char:'道', on:'ドウ・トウ', kun:'みち', meaning:'Jalan / Cara', id:'Michi', on_id:'Dou / Tou',
+   on_ex:'道路 (どうろ) – jalan raya · 柔道 (じゅうどう) – judo', kun_ex:'道 (みち) – jalan · 道のり (みちのり) – jarak perjalanan',
+   sentence:'えきへのみちを道を教えてください。', sentence_id:'Tolong tunjukkan jalan menuju stasiun.'},
+  {n:226, char:'週', on:'シュウ', kun:'まわり', meaning:'Minggu / Pekan', id:'Mawari', on_id:'Shuu',
+   on_ex:'今週 (こんしゅう) – minggu ini · 来週 (らいしゅう) – minggu depan', kun_ex:'週り (まわり) – sekitar · 週 (しゅう) – minggu',
+   sentence:'来週のにちようびにともだちとあそびます。', sentence_id:'Minggu depan hari Minggu saya bermain dengan teman.'},
+  {n:227, char:'映', on:'エイ', kun:'うつ', meaning:'Memantulkan / Memproyeksikan', id:'Utsu', on_id:'Ei',
+   on_ex:'映画 (えいが) – film · 映像 (えいぞう) – gambar / visual', kun_ex:'映る (うつる) – terpantul · 映す (うつす) – memproyeksikan',
+   sentence:'きのうあたらしい映がをみました。', sentence_id:'Kemarin saya menonton film baru.'},
+  {n:228, char:'写', on:'シャ', kun:'うつ', meaning:'Menyalin / Memfoto', id:'Utsu', on_id:'Sha',
+   on_ex:'写真 (しゃしん) – foto · 写本 (しゃほん) – salinan manuskrip', kun_ex:'写す (うつす) – menyalin · 写る (うつる) – terfoto',
+   sentence:'かぞくとしゃしんを写しました。', sentence_id:'Saya berfoto bersama keluarga.'},
+  {n:229, char:'真', on:'シン', kun:'ま', meaning:'Benar / Sungguh / Foto', id:'Ma', on_id:'Shin',
+   on_ex:'写真 (しゃしん) – foto · 真剣 (しんけん) – serius / sungguh-sungguh', kun_ex:'真面目 (まじめ) – serius · 真っ白 (まっしろ) – putih bersih',
+   sentence:'かれはいつも真けんにしごとをします。', sentence_id:'Dia selalu bekerja dengan serius.'},
+  {n:230, char:'旅', on:'リョ', kun:'たび', meaning:'Perjalanan / Wisata', id:'Tabi', on_id:'Ryo',
+   on_ex:'旅行 (りょこう) – perjalanan wisata · 旅館 (りょかん) – penginapan Jepang', kun_ex:'旅 (たび) – perjalanan · 旅人 (たびびと) – musafir',
+   sentence:'なつやすみにかぞくと旅こうにいきます。', sentence_id:'Saat liburan musim panas saya pergi wisata bersama keluarga.'},
+  {n:231, char:'世', on:'セイ・セ', kun:'よ', meaning:'Dunia / Zaman / Generasi', id:'Yo', on_id:'Sei / Se',
+   on_ex:'世界 (せかい) – dunia · 世紀 (せいき) – abad', kun_ex:'世 (よ) – dunia / zaman · 世の中 (よのなか) – masyarakat',
+   sentence:'世のなかにはいろいろなひとがいます。', sentence_id:'Di dunia ini ada bermacam-macam orang.'},
+  {n:232, char:'界', on:'カイ', kun:'さかい', meaning:'Batas / Dunia / Bidang', id:'Sakai', on_id:'Kai',
+   on_ex:'世界 (せかい) – dunia · 業界 (ぎょうかい) – industri / bidang', kun_ex:'界 (さかい) – batas / perbatasan',
+   sentence:'にほんごは世界でつかわれています。', sentence_id:'Bahasa Jepang digunakan di seluruh dunia.'},
+  {n:233, char:'仕', on:'シ・ジ', kun:'つか', meaning:'Melayani / Bekerja', id:'Tsuka', on_id:'Shi / Ji',
+   on_ex:'仕事 (しごと) – pekerjaan · 仕方 (しかた) – cara / metode', kun_ex:'仕える (つかえる) – melayani / mengabdi',
+   sentence:'ちちのしごとはいそがしいです。', sentence_id:'Pekerjaan ayah sangat sibuk.'},
+  {n:234, char:'事', on:'ジ・ズ', kun:'こと', meaning:'Hal / Pekerjaan / Urusan', id:'Koto', on_id:'Ji / Zu',
+   on_ex:'仕事 (しごと) – pekerjaan · 食事 (しょくじ) – makan / makanan', kun_ex:'事 (こと) – hal / urusan · 事柄 (ことがら) – perkara',
+   sentence:'たいせつな事はわすれないようにします。', sentence_id:'Saya berusaha tidak melupakan hal yang penting.'},
+  {n:235, char:'銀', on:'ギン', kun:'しろがね', meaning:'Perak / Bank', id:'Shirogane', on_id:'Gin',
+   on_ex:'銀行 (ぎんこう) – bank · 銀色 (ぎんいろ) – warna perak', kun_ex:'銀 (しろがね) – perak',
+   sentence:'まいつき銀こうでおかねをおろします。', sentence_id:'Saya mengambil uang di bank setiap bulan.'},
+  {n:236, char:'医', on:'イ', kun:'くすし', meaning:'Dokter / Kedokteran', id:'Kusushi', on_id:'I',
+   on_ex:'医者 (いしゃ) – dokter · 医学 (いがく) – ilmu kedokteran', kun_ex:'医 (くすし) – tabib / dokter',
+   sentence:'かぜをひいたのでいしゃに医てもらいました。', sentence_id:'Saya diperiksa dokter karena masuk angin.'},
+  {n:237, char:'者', on:'シャ', kun:'もの', meaning:'Orang / Pelaku', id:'Mono', on_id:'Sha',
+   on_ex:'医者 (いしゃ) – dokter · 記者 (きしゃ) – wartawan', kun_ex:'者 (もの) – orang / pelaku · 若者 (わかもの) – anak muda',
+   sentence:'あのはくい者はわたしのせんせいです。', sentence_id:'Orang berjas putih itu adalah guru saya.'},
+  {n:238, char:'屋', on:'オク', kun:'や', meaning:'Toko / Rumah / Profesi', id:'Ya', on_id:'Oku',
+   on_ex:'部屋 (へや) – kamar · 屋根 (やね) – atap', kun_ex:'屋 (や) – toko · パン屋 (ぱんや) – toko roti',
+   sentence:'このまちにはおいしいパン屋があります。', sentence_id:'Di kota ini ada toko roti yang enak.'},
+  {n:239, char:'産', on:'サン', kun:'う', meaning:'Melahirkan / Produksi / Kekayaan', id:'U', on_id:'San',
+   on_ex:'産業 (さんぎょう) – industri · 出産 (しゅっさん) – melahirkan', kun_ex:'産む (うむ) – melahirkan · 産み出す (うみだす) – menghasilkan',
+   sentence:'にほんはいろいろなものを産ぎょうしています。', sentence_id:'Jepang memproduksi berbagai macam barang.'},
+  {n:240, char:'業', on:'ギョウ・ゴウ', kun:'わざ', meaning:'Pekerjaan / Industri / Karma', id:'Waza', on_id:'Gyou / Gou',
+   on_ex:'産業 (さんぎょう) – industri · 卒業 (そつぎょう) – kelulusan', kun_ex:'業 (わざ) – keahlian · 業 (ごう) – karma',
+   sentence:'かれはことしだいがくをそつ業します。', sentence_id:'Dia lulus universitas tahun ini.'},
+  {n:241, char:'社', on:'シャ', kun:'やしろ', meaning:'Perusahaan / Kuil Shinto', id:'Yashiro', on_id:'Sha',
+   on_ex:'会社 (かいしゃ) – perusahaan · 神社 (じんじゃ) – kuil Shinto', kun_ex:'社 (やしろ) – kuil Shinto',
+   sentence:'ちちはおおきいかい社ではたらいています。', sentence_id:'Ayah bekerja di perusahaan besar.'},
+  {n:242, char:'乗', on:'ジョウ', kun:'の', meaning:'Naik / Menumpang', id:'No', on_id:'Jou',
+   on_ex:'乗車 (じょうしゃ) – naik kendaraan · 乗客 (じょうきゃく) – penumpang', kun_ex:'乗る (のる) – naik / menumpang · 乗り換え (のりかえ) – transit',
+   sentence:'まいあさでんしゃに乗って学校にいきます。', sentence_id:'Setiap pagi saya naik kereta ke sekolah.'},
+  {n:243, char:'降', on:'コウ', kun:'お・ふ', meaning:'Turun / Hujan / Salju', id:'O / Fu', on_id:'Kou',
+   on_ex:'降車 (こうしゃ) – turun dari kendaraan · 降水 (こうすい) – curah hujan', kun_ex:'降りる (おりる) – turun · 降る (ふる) – turun (hujan/salju)',
+   sentence:'つぎのえきで降ります。', sentence_id:'Saya turun di stasiun berikutnya.'},
+  {n:244, char:'転', on:'テン', kun:'ころ', meaning:'Berputar / Pindah / Berguling', id:'Koro', on_id:'Ten',
+   on_ex:'転校 (てんこう) – pindah sekolah · 自転車 (じてんしゃ) – sepeda', kun_ex:'転ぶ (ころぶ) – jatuh/terguling · 転がる (ころがる) – menggelinding',
+   sentence:'じてん車にのっていてころんでしまいました。', sentence_id:'Saya jatuh saat mengendarai sepeda.'},
+  {n:245, char:'発', on:'ハツ・ホツ', kun:'た', meaning:'Berangkat / Mengeluarkan', id:'Ta', on_id:'Hatsu / Hotsu',
+   on_ex:'出発 (しゅっぱつ) – keberangkatan · 発見 (はっけん) – penemuan', kun_ex:'発つ (たつ) – berangkat · 発ち場 (たちば) – posisi',
+   sentence:'あしたのあさはやくとうきょうを発ちます。', sentence_id:'Besok pagi saya berangkat dari Tokyo lebih awal.'},
+  {n:246, char:'着', on:'チャク・ジャク', kun:'き・つ', meaning:'Tiba / Memakai (pakaian)', id:'Ki / Tsu', on_id:'Chaku / Jaku',
+   on_ex:'到着 (とうちゃく) – kedatangan · 着物 (きもの) – kimono', kun_ex:'着る (きる) – memakai (baju) · 着く (つく) – tiba',
+   sentence:'えきにきれいなきものを着たひとがいます。', sentence_id:'Di stasiun ada orang yang memakai kimono indah.'},
+  {n:247, char:'春', on:'シュン', kun:'はる', meaning:'Musim Semi', id:'Haru', on_id:'Shun',
+   on_ex:'春分 (しゅんぶん) – ekuinoks musim semi · 青春 (せいしゅん) – masa muda', kun_ex:'春 (はる) – musim semi · 春風 (はるかぜ) – angin musim semi',
+   sentence:'春になるとさくらがきれいにさきます。', sentence_id:'Ketika musim semi tiba bunga sakura mekar dengan indah.'},
+  {n:248, char:'夏', on:'カ・ゲ', kun:'なつ', meaning:'Musim Panas', id:'Natsu', on_id:'Ka / Ge',
+   on_ex:'夏至 (げし) – titik balik musim panas · 初夏 (しょか) – awal musim panas', kun_ex:'夏 (なつ) – musim panas · 夏休み (なつやすみ) – liburan musim panas',
+   sentence:'夏はあつくてうみにいきたくなります。', sentence_id:'Di musim panas cuaca panas dan ingin pergi ke laut.'},
+  {n:249, char:'秋', on:'シュウ', kun:'あき', meaning:'Musim Gugur', id:'Aki', on_id:'Shuu',
+   on_ex:'秋分 (しゅうぶん) – ekuinoks musim gugur · 秋風 (あきかぜ) – angin musim gugur', kun_ex:'秋 (あき) – musim gugur · 秋空 (あきぞら) – langit musim gugur',
+   sentence:'秋になるとはがあかくなります。', sentence_id:'Ketika musim gugur tiba daun-daun menjadi merah.'},
+  {n:250, char:'冬', on:'トウ', kun:'ふゆ', meaning:'Musim Dingin', id:'Fuyu', on_id:'Tou',
+   on_ex:'冬至 (とうじ) – titik balik musim dingin · 冬眠 (とうみん) – hibernasi', kun_ex:'冬 (ふゆ) – musim dingin · 冬休み (ふゆやすみ) – liburan musim dingin',
+   sentence:'冬はさむくてゆきがたくさんふります。', sentence_id:'Di musim dingin cuaca dingin dan banyak salju turun.'},
+  {n:251, char:'空', on:'クウ', kun:'そら・から・あ', meaning:'Langit / Kosong', id:'Sora / Kara / A', on_id:'Kuu',
+   on_ex:'空港 (くうこう) – bandara · 空気 (くうき) – udara', kun_ex:'空 (そら) – langit · 空っぽ (からっぽ) – kosong',
+   sentence:'きょうはとてもきれいな青い空です。', sentence_id:'Hari ini langitnya sangat indah dan biru.'},
+  {n:252, char:'光', on:'コウ', kun:'ひかり・ひか', meaning:'Cahaya / Bersinar', id:'Hikari / Hika', on_id:'Kou',
+   on_ex:'光線 (こうせん) – sinar · 観光 (かんこう) – pariwisata', kun_ex:'光 (ひかり) – cahaya · 光る (ひかる) – bersinar',
+   sentence:'たいようの光がとてもまぶしいです。', sentence_id:'Cahaya matahari sangat menyilaukan.'},
+  {n:253, char:'台', on:'ダイ・タイ', kun:'うてな', meaning:'Panggung / Meja / Alat', id:'Utena', on_id:'Dai / Tai',
+   on_ex:'台風 (たいふう) – topan · 舞台 (ぶたい) – panggung', kun_ex:'台 (うてな) – panggung · 台所 (だいどころ) – dapur',
+   sentence:'だいどころの台でりょうりをします。', sentence_id:'Saya memasak di meja dapur.'},
+  {n:254, char:'風', on:'フウ・フ', kun:'かぜ・かざ', meaning:'Angin / Gaya', id:'Kaze / Kaza', on_id:'Fuu / Fu',
+   on_ex:'台風 (たいふう) – topan · 風景 (ふうけい) – pemandangan', kun_ex:'風 (かぜ) – angin · 風邪 (かぜ) – flu / masuk angin',
+   sentence:'きょうはつよい風がふいています。', sentence_id:'Hari ini angin bertiup kencang.'},
+  {n:255, char:'季', on:'キ', kun:'すえ', meaning:'Musim / Periode', id:'Sue', on_id:'Ki',
+   on_ex:'季節 (きせつ) – musim · 四季 (しき) – empat musim', kun_ex:'季 (すえ) – akhir periode',
+   sentence:'にほんには四つの季せつがあります。', sentence_id:'Di Jepang ada empat musim.'},
+  {n:256, char:'節', on:'セツ・セッ', kun:'ふし', meaning:'Musim / Ruas / Hari Raya', id:'Fushi', on_id:'Setsu / Ses',
+   on_ex:'季節 (きせつ) – musim · 節約 (せつやく) – penghematan', kun_ex:'節 (ふし) – ruas / sendi · 節目 (ふしめ) – titik balik',
+   sentence:'きせつが変わるといろいろな節もかわります。', sentence_id:'Ketika musim berganti berbagai hal juga ikut berubah.'},
+  {n:257, char:'朝', on:'チョウ', kun:'あさ', meaning:'Pagi / Dinasti', id:'Asa', on_id:'Chou',
+   on_ex:'朝食 (ちょうしょく) – sarapan · 今朝 (けさ) – pagi ini', kun_ex:'朝 (あさ) – pagi · 朝ごはん (あさごはん) – sarapan',
+   sentence:'朝はやくおきてさんぽをします。', sentence_id:'Saya bangun pagi-pagi dan berjalan-jalan.'},
+  {n:258, char:'昼', on:'チュウ', kun:'ひる', meaning:'Siang Hari', id:'Hiru', on_id:'Chuu',
+   on_ex:'昼食 (ちゅうしょく) – makan siang · 昼間 (ひるま) – siang hari', kun_ex:'昼 (ひる) – siang · 昼ごはん (ひるごはん) – makan siang',
+   sentence:'昼にともだちとランチをたべました。', sentence_id:'Saya makan siang bersama teman.'},
+  {n:259, char:'夜', on:'ヤ', kun:'よる・よ', meaning:'Malam', id:'Yoru / Yo', on_id:'Ya',
+   on_ex:'夜間 (やかん) – malam hari · 深夜 (しんや) – tengah malam', kun_ex:'夜 (よる) – malam · 夜中 (よなか) – tengah malam',
+   sentence:'夜になるとほしがきれいにみえます。', sentence_id:'Ketika malam tiba bintang-bintang terlihat indah.'},
+  {n:260, char:'方', on:'ホウ', kun:'かた', meaning:'Arah / Cara / Orang (hormat)', id:'Kata', on_id:'Hou',
+   on_ex:'方向 (ほうこう) – arah · 地方 (ちほう) – daerah / wilayah', kun_ex:'方 (かた) – cara · あの方 (あのかた) – orang itu (hormat)',
+   sentence:'えきへのいきかたを方をおしえてください。', sentence_id:'Tolong beritahu cara pergi ke stasiun.'},
+  {n:261, char:'晩', on:'バン', kun:'くれ', meaning:'Malam / Sore (akhir)', id:'Kure', on_id:'Ban',
+   on_ex:'今晩 (こんばん) – malam ini · 晩年 (ばんねん) – usia senja', kun_ex:'晩 (くれ) – sore menjelang malam · 晩ごはん (ばんごはん) – makan malam',
+   sentence:'晩ごはんはなにをたべますか？', sentence_id:'Makan malam kamu mau makan apa?'},
+  {n:262, char:'曜', on:'ヨウ', kun:'ひかり', meaning:'Hari (dalam seminggu)', id:'Hikari', on_id:'You',
+   on_ex:'月曜日 (げつようび) – Senin · 曜日 (ようび) – hari dalam seminggu', kun_ex:'曜 (ひかり) – cahaya / bintang',
+   sentence:'なん曜びにうまれましたか？', sentence_id:'Kamu lahir hari apa?'},
+  {n:263, char:'以', on:'イ', kun:'もっ', meaning:'Dengan / Sejak / Lebih dari', id:'Mot', on_id:'I',
+   on_ex:'以上 (いじょう) – lebih dari / di atas · 以下 (いか) – kurang dari / di bawah', kun_ex:'以て (もって) – dengan / menggunakan',
+   sentence:'ここから以じょうはいれません。', sentence_id:'Dari sini ke atas tidak boleh masuk.'},
+  {n:264, char:'度', on:'ド・ト・タク', kun:'たび', meaning:'Derajat / Kali / Tingkat', id:'Tabi', on_id:'Do / To / Taku',
+   on_ex:'温度 (おんど) – suhu · 今度 (こんど) – kali ini / lain kali', kun_ex:'度 (たび) – kali / setiap kali · 度々 (たびたび) – berkali-kali',
+   sentence:'きのうのきおんはさんじゅっ度でした。', sentence_id:'Suhu udara kemarin tiga puluh derajat.'},
+  {n:265, char:'不', on:'フ・ブ', kun:'ず', meaning:'Tidak / Bukan (prefiks negatif)', id:'Zu', on_id:'Fu / Bu',
+   on_ex:'不安 (ふあん) – cemas / khawatir · 不便 (ふべん) – tidak praktis', kun_ex:'不 (ず) – tidak (dalam komposisi)',
+   sentence:'このみちはあるきにくくてとても不べんです。', sentence_id:'Jalan ini sulit dilalui dan sangat tidak nyaman.'},
+  {n:266, char:'未', on:'ミ', kun:'いま', meaning:'Belum / Masa Depan', id:'Ima', on_id:'Mi',
+   on_ex:'未来 (みらい) – masa depan · 未定 (みてい) – belum ditentukan', kun_ex:'未だ (いまだ) – masih belum · 未 (ひつじ) – kambing (zodiak)',
+   sentence:'しゅくだいがまだ未おわりです。', sentence_id:'Pekerjaan rumah saya masih belum selesai.'},
+
+  // ── Kanji Baru ──
+  {n:267, char:'頭', on:'トウ・ズ', kun:'あたま・かしら', meaning:'Kepala / Pimpinan', id:'Atama / Kashira', on_id:'Tou / Zu',
+   on_ex:'頭痛 (ずつう) – sakit kepala · 先頭 (せんとう) – barisan terdepan', kun_ex:'頭 (あたま) – kepala · 頭 (かしら) – pimpinan / bos',
+   sentence:'あたまがいたいのであたまをやすめます。', sentence_id:'Kepala saya sakit jadi saya mengistirahatkan kepala.'},
+  {n:268, char:'顔', on:'ガン', kun:'かお', meaning:'Wajah / Muka', id:'Kao', on_id:'Gan',
+   on_ex:'洗顔 (せんがん) – mencuci muka · 顔色 (かおいろ) – warna muka / ekspresi', kun_ex:'顔 (かお) – wajah · 顔つき (かおつき) – ekspresi wajah',
+   sentence:'かれはいつもえがおのかおをしています。', sentence_id:'Dia selalu tersenyum di wajahnya.'},
+  {n:269, char:'声', on:'セイ・ショウ', kun:'こえ', meaning:'Suara / Ucapan', id:'Koe', on_id:'Sei / Shou',
+   on_ex:'声援 (せいえん) – dukungan / sorak-sorak · 音声 (おんせい) – suara / audio', kun_ex:'声 (こえ) – suara · 声をかける (こえをかける) – menyapa',
+   sentence:'かのじょはきれいなこえでうたいます。', sentence_id:'Dia menyanyi dengan suara yang indah.'},
+  {n:270, char:'内', on:'ナイ・ダイ', kun:'うち', meaning:'Dalam / Di Dalam / Domestik', id:'Uchi', on_id:'Nai / Dai',
+   on_ex:'国内 (こくない) – dalam negeri · 内容 (ないよう) – isi / konten', kun_ex:'内 (うち) – dalam / rumah · 家の内 (いえのうち) – di dalam rumah',
+   sentence:'このけんは国内でよくしられています。', sentence_id:'Hal ini dikenal luas di dalam negeri.'},
+  {n:271, char:'家', on:'カ・ケ', kun:'いえ・うち', meaning:'Rumah / Keluarga / Ahli', id:'Ie / Uchi', on_id:'Ka / Ke',
+   on_ex:'家族 (かぞく) – keluarga · 家庭 (かてい) – rumah tangga · 作家 (さっか) – penulis', kun_ex:'家 (いえ) – rumah · 家 (うち) – rumah (akrab)',
+   sentence:'わたしの家はえきのちかくにあります。', sentence_id:'Rumah saya dekat dari stasiun.'},
+  {n:272, char:'族', on:'ゾク', kun:'やから', meaning:'Keluarga / Suku / Kelompok', id:'Yakara', on_id:'Zoku',
+   on_ex:'家族 (かぞく) – keluarga · 民族 (みんぞく) – suku bangsa · 親族 (しんぞく) – kerabat', kun_ex:'族 (やから) – kelompok / suku',
+   sentence:'まいしゅうまつに家族でしょくじをします。', sentence_id:'Setiap akhir pekan saya makan bersama keluarga.'},
+  {n:273, char:'私', on:'シ', kun:'わたし・わたくし', meaning:'Saya / Pribadi / Swasta', id:'Watashi / Watakushi', on_id:'Shi',
+   on_ex:'私立 (しりつ) – swasta · 私有 (しゆう) – milik pribadi', kun_ex:'私 (わたし) – saya · 私 (わたくし) – saya (formal)',
+   sentence:'私はにほんごをまいにちべんきょうしています。', sentence_id:'Saya belajar bahasa Jepang setiap hari.'},
+  {n:274, char:'自', on:'ジ・シ', kun:'みずか', meaning:'Sendiri / Diri Sendiri', id:'Mizuka', on_id:'Ji / Shi',
+   on_ex:'自由 (じゆう) – bebas · 自然 (しぜん) – alam / alami · 自転車 (じてんしゃ) – sepeda', kun_ex:'自ら (みずから) – sendiri / secara pribadi',
+   sentence:'なんでも自分でやってみましょう。', sentence_id:'Mari coba lakukan sendiri apa pun itu.'},
+  {n:275, char:'兄', on:'ケイ・キョウ', kun:'あに', meaning:'Kakak Laki-laki', id:'Ani', on_id:'Kei / Kyou',
+   on_ex:'兄弟 (きょうだい) – saudara kandung · 父兄 (ふけい) – ayah dan kakak / wali', kun_ex:'兄 (あに) – kakak laki-laki · お兄さん (おにいさん) – kakak laki-laki (hormat)',
+   sentence:'兄はだいがくでりかをせんこうしています。', sentence_id:'Kakak laki-laki saya kuliah jurusan IPA.'},
+  {n:276, char:'弟', on:'テイ・ダイ・デ', kun:'おとうと', meaning:'Adik Laki-laki', id:'Otouto', on_id:'Tei / Dai / De',
+   on_ex:'兄弟 (きょうだい) – saudara kandung · 弟子 (でし) – murid / anak didik', kun_ex:'弟 (おとうと) – adik laki-laki',
+   sentence:'弟はことしちゅうがっこうにはいりました。', sentence_id:'Adik laki-laki saya masuk SMP tahun ini.'},
+  {n:277, char:'妻', on:'サイ', kun:'つま', meaning:'Istri', id:'Tsuma', on_id:'Sai',
+   on_ex:'妻子 (さいし) – istri dan anak · 夫妻 (ふさい) – suami istri', kun_ex:'妻 (つま) – istri · 妻帯 (さいたい) – berkeluarga',
+   sentence:'妻とふたりでりょこうにいきます。', sentence_id:'Saya pergi wisata berdua bersama istri.'},
+  {n:278, char:'氏', on:'シ', kun:'うじ', meaning:'Marga / Tuan (gelar)', id:'Uji', on_id:'Shi',
+   on_ex:'氏名 (しめい) – nama lengkap · 田中氏 (たなかし) – Tn. Tanaka', kun_ex:'氏 (うじ) – marga / klan · 氏名 (うじな) – nama marga',
+   sentence:'おなまえとし名をかいてください。', sentence_id:'Tolong tulis nama dan marga Anda.'},
+  {n:279, char:'名', on:'メイ・ミョウ', kun:'な', meaning:'Nama / Terkenal', id:'Na', on_id:'Mei / Myou',
+   on_ex:'有名 (ゆうめい) – terkenal · 名前 (なまえ) – nama · 名刺 (めいし) – kartu nama', kun_ex:'名 (な) – nama · 名字 (みょうじ) – nama keluarga',
+   sentence:'おなまえはなんですか？', sentence_id:'Siapa nama Anda?'},
+  {n:280, char:'理', on:'リ', kun:'ことわり', meaning:'Alasan / Logika / Memahami', id:'Kotowari', on_id:'Ri',
+   on_ex:'料理 (りょうり) – masakan · 理由 (りゆう) – alasan · 理解 (りかい) – pemahaman', kun_ex:'理 (ことわり) – alasan / logika · 理する (ことわりする) – menolak',
+   sentence:'そのりゆうがよくわかりません。', sentence_id:'Saya tidak mengerti alasannya dengan baik.'},
+  {n:281, char:'野', on:'ヤ', kun:'の', meaning:'Ladang / Alam Liar / Bidang', id:'No', on_id:'Ya',
+   on_ex:'野菜 (やさい) – sayuran · 野球 (やきゅう) – baseball · 分野 (ぶんや) – bidang / domain', kun_ex:'野 (の) – padang / ladang · 野原 (のはら) – padang rumput',
+   sentence:'広い野はらでこどもたちがあそんでいます。', sentence_id:'Anak-anak bermain di padang rumput yang luas.'},
+  {n:282, char:'飯', on:'ハン', kun:'めし', meaning:'Nasi / Makanan / Makan', id:'Meshi', on_id:'Han',
+   on_ex:'夕飯 (ゆうはん) – makan malam · 朝飯 (あさめし) – sarapan (kasual)', kun_ex:'飯 (めし) – nasi / makan (kasual) · ご飯 (ごはん) – nasi / makan',
+   sentence:'ごはんをたべましたか？', sentence_id:'Apakah kamu sudah makan?'},
+  {n:283, char:'味', on:'ミ', kun:'あじ', meaning:'Rasa / Cita Rasa', id:'Aji', on_id:'Mi',
+   on_ex:'味覚 (みかく) – indera perasa · 趣味 (しゅみ) – hobi · 意味 (いみ) – arti / makna', kun_ex:'味 (あじ) – rasa · 味わう (あじわう) – menikmati rasanya',
+   sentence:'このりょうりはとてもいい味がします。', sentence_id:'Masakan ini rasanya sangat enak.'},
+  {n:284, char:'店', on:'テン', kun:'みせ', meaning:'Toko / Kedai', id:'Mise', on_id:'Ten',
+   on_ex:'開店 (かいてん) – buka toko · 店員 (てんいん) – pegawai toko · 書店 (しょてん) – toko buku', kun_ex:'店 (みせ) – toko / kedai · 店先 (みせさき) – depan toko',
+   sentence:'えきのまえにあたらしい店がひらきました。', sentence_id:'Toko baru telah dibuka di depan stasiun.'},
+  {n:285, char:'国', on:'コク', kun:'くに', meaning:'Negara / Bangsa', id:'Kuni', on_id:'Koku',
+   on_ex:'外国 (がいこく) – negara asing · 国際 (こくさい) – internasional · 国語 (こくご) – bahasa nasional', kun_ex:'国 (くに) – negara · 国々 (くにぐに) – berbagai negara',
+   sentence:'かれはがいこくから来たひとです。', sentence_id:'Dia adalah orang yang datang dari luar negeri.'},
+
+  // ── Kanji Baru: Tempat & Lokasi ──
+  {n:286, char:'所', on:'ショ・ジョ', kun:'ところ・どころ', meaning:'Tempat / Lokasi', id:'Tokoro / Dokoro', on_id:'Sho / Jo',
+   on_ex:'場所 (ばしょ) – tempat · 住所 (じゅうしょ) – alamat · 近所 (きんじょ) – tetangga', kun_ex:'所 (ところ) – tempat · 台所 (だいどころ) – dapur',
+   sentence:'あなたのすんでいるところはどこですか？', sentence_id:'Di mana tempat tinggal Anda?'},
+  {n:287, char:'京', on:'キョウ・ケイ', kun:'みやこ', meaning:'Ibu Kota / Tokyo / Kyoto', id:'Miyako', on_id:'Kyou / Kei',
+   on_ex:'東京 (とうきょう) – Tokyo · 京都 (きょうと) – Kyoto · 上京 (じょうきょう) – pergi ke Tokyo', kun_ex:'京 (みやこ) – ibu kota / kota kerajaan',
+   sentence:'らいねんとうきょうにいきたいです。', sentence_id:'Tahun depan saya ingin pergi ke Tokyo.'},
+  {n:288, char:'都', on:'ト・ツ', kun:'みやこ', meaning:'Ibu Kota / Metropolitan', id:'Miyako', on_id:'To / Tsu',
+   on_ex:'東京都 (とうきょうと) – Metropolis Tokyo · 都市 (とし) – kota · 都合 (つごう) – situasi / kenyamanan', kun_ex:'都 (みやこ) – ibu kota',
+   sentence:'とうきょうとはにほんのしゅとです。', sentence_id:'Tokyo Metropolis adalah ibu kota Jepang.'},
+  {n:289, char:'府', on:'フ', kun:'くら', meaning:'Prefektur / Pemerintahan', id:'Kura', on_id:'Fu',
+   on_ex:'大阪府 (おおさかふ) – Prefektur Osaka · 政府 (せいふ) – pemerintah · 首府 (しゅふ) – ibu kota pemerintahan', kun_ex:'府 (くら) – gudang / tempat penyimpanan',
+   sentence:'おおさかふにはおいしいたべものがたくさんあります。', sentence_id:'Di Prefektur Osaka banyak makanan enak.'},
+  {n:290, char:'県', on:'ケン', kun:'あがた', meaning:'Prefektur / Kabupaten', id:'Agata', on_id:'Ken',
+   on_ex:'神奈川県 (かながわけん) – Prefektur Kanagawa · 県庁 (けんちょう) – kantor prefektur', kun_ex:'県 (あがた) – daerah / wilayah kuno',
+   sentence:'かながわけんはとうきょうのとなりにあります。', sentence_id:'Prefektur Kanagawa berada di sebelah Tokyo.'},
+  {n:291, char:'市', on:'シ', kun:'いち', meaning:'Kota / Pasar', id:'Ichi', on_id:'Shi',
+   on_ex:'市役所 (しやくしょ) – kantor wali kota · 市場 (いちば) – pasar · 都市 (とし) – kota', kun_ex:'市 (いち) – pasar · 市場 (いちば) – pasar',
+   sentence:'このしにはおおきなしやくしょがあります。', sentence_id:'Di kota ini ada kantor wali kota yang besar.'},
+  {n:292, char:'区', on:'ク', kun:'ちまた', meaning:'Distrik / Kawasan', id:'Chimata', on_id:'Ku',
+   on_ex:'地区 (ちく) – kawasan · 区別 (くべつ) – pembedaan · 新宿区 (しんじゅくく) – Distrik Shinjuku', kun_ex:'区 (ちまた) – persimpangan / kawasan ramai',
+   sentence:'しんじゅくくはとうきょうのなかにあります。', sentence_id:'Distrik Shinjuku berada di dalam Tokyo.'},
+  {n:293, char:'町', on:'チョウ', kun:'まち', meaning:'Kota Kecil / Kecamatan / Blok', id:'Machi', on_id:'Chou',
+   on_ex:'町内 (ちょうない) – dalam kota kecil · 下町 (したまち) – kawasan kota tua', kun_ex:'町 (まち) – kota kecil · 町並み (まちなみ) – deretan bangunan kota',
+   sentence:'このまちはとてもしずかでいいところです。', sentence_id:'Kota kecil ini sangat tenang dan merupakan tempat yang bagus.'},
+  {n:294, char:'村', on:'ソン', kun:'むら', meaning:'Desa', id:'Mura', on_id:'Son',
+   on_ex:'村長 (そんちょう) – kepala desa · 農村 (のうそん) – desa pertanian', kun_ex:'村 (むら) – desa · 村人 (むらびと) – penduduk desa',
+   sentence:'そふはやまのなかのむらにすんでいます。', sentence_id:'Kakek saya tinggal di sebuah desa di pegunungan.'},
+  {n:295, char:'番', on:'バン', kun:'つが', meaning:'Nomor / Giliran / Penjagaan', id:'Tsuga', on_id:'Ban',
+   on_ex:'番号 (ばんごう) – nomor · 一番 (いちばん) – nomor satu / paling · 番組 (ばんぐみ) – program TV', kun_ex:'番 (つがい) – pasangan · 番 (ばん) – giliran / jaga',
+   sentence:'あなたのでんわばんごうをおしえてください。', sentence_id:'Tolong beritahu nomor telepon Anda.'},
+  {n:296, char:'場', on:'ジョウ', kun:'ば', meaning:'Tempat / Lapangan / Area', id:'Ba', on_id:'Jou',
+   on_ex:'場所 (ばしょ) – tempat · 工場 (こうじょう) – pabrik · 広場 (ひろば) – lapangan', kun_ex:'場 (ば) – tempat / arena · 場合 (ばあい) – dalam kasus',
+   sentence:'えきのちかくにひろいこうえんのばしょがあります。', sentence_id:'Ada tempat taman yang luas dekat stasiun.'},
+  {n:297, char:'建', on:'ケン・コン', kun:'た・た', meaning:'Membangun / Mendirikan', id:'Ta', on_id:'Ken / Kon',
+   on_ex:'建物 (たてもの) – gedung · 建設 (けんせつ) – konstruksi · 建築 (けんちく) – arsitektur', kun_ex:'建てる (たてる) – membangun · 建つ (たつ) – berdiri / dibangun',
+   sentence:'あたらしいビルをたてるこうじがはじまりました。', sentence_id:'Proyek pembangunan gedung baru telah dimulai.'},
+  {n:298, char:'物', on:'ブツ・モツ', kun:'もの', meaning:'Benda / Barang / Makhluk', id:'Mono', on_id:'Butsu / Motsu',
+   on_ex:'動物 (どうぶつ) – hewan · 食べ物 (たべもの) – makanan · 買い物 (かいもの) – belanja', kun_ex:'物 (もの) – benda · 物語 (ものがたり) – cerita / dongeng',
+   sentence:'このたてものはとてもふるいですがきれいです。', sentence_id:'Gedung ini sangat tua tapi masih indah.'},
+  {n:299, char:'号', on:'ゴウ', kun:'よびな', meaning:'Nomor / Kode / Sinyal', id:'Yobina', on_id:'Gou',
+   on_ex:'番号 (ばんごう) – nomor · 号令 (ごうれい) – komando · 信号 (しんごう) – lampu lalu lintas', kun_ex:'号 (よびな) – nama panggilan',
+   sentence:'しんごうがあおになってからわたってください。', sentence_id:'Tolong menyeberang setelah lampu lalu lintas menjadi hijau.'},
+  {n:300, char:'工', on:'コウ・ク', kun:'たくみ', meaning:'Keahlian / Konstruksi / Pekerja', id:'Takumi', on_id:'Kou / Ku',
+   on_ex:'工場 (こうじょう) – pabrik · 工事 (こうじ) – konstruksi · 人工 (じんこう) – buatan manusia', kun_ex:'工 (たくみ) – pengrajin / ahli',
+   sentence:'このみちはいまこうじちゅうです。', sentence_id:'Jalan ini sedang dalam konstruksi.'},
+  {n:301, char:'図', on:'ズ・ト', kun:'はか', meaning:'Gambar / Peta / Rencana', id:'Haka', on_id:'Zu / To',
+   on_ex:'地図 (ちず) – peta · 図書館 (としょかん) – perpustakaan · 図形 (ずけい) – bangun datar', kun_ex:'図る (はかる) – merencanakan · 図 (ず) – diagram',
+   sentence:'ちずをみてみちをさがしました。', sentence_id:'Saya mencari jalan dengan melihat peta.'},
+  {n:302, char:'院', on:'イン', kun:'いん', meaning:'Institusi / Klinik / Rumah Sakit', id:'In', on_id:'In',
+   on_ex:'病院 (びょういん) – rumah sakit · 大学院 (だいがくいん) – pascasarjana · 美容院 (びよういん) – salon kecantikan', kun_ex:'院 (いん) – lembaga / institusi',
+   sentence:'びょうきになったのでびょういんにいきました。', sentence_id:'Saya pergi ke rumah sakit karena sakit.'},
+  {n:303, char:'館', on:'カン', kun:'やかた', meaning:'Gedung / Aula / Penginapan', id:'Yakata', on_id:'Kan',
+   on_ex:'図書館 (としょかん) – perpustakaan · 旅館 (りょかん) – penginapan Jepang · 体育館 (たいいくかん) – gimnasium', kun_ex:'館 (やかた) – kediaman / istana kecil',
+   sentence:'としょかんでほんをよむのがすきです。', sentence_id:'Saya suka membaca buku di perpustakaan.'},
+  {n:304, char:'室', on:'シツ', kun:'むろ', meaning:'Kamar / Ruangan', id:'Muro', on_id:'Shitsu',
+   on_ex:'教室 (きょうしつ) – ruang kelas · 寝室 (しんしつ) – kamar tidur · 洋室 (ようしつ) – kamar bergaya Barat', kun_ex:'室 (むろ) – ruangan / gudang bawah tanah',
+   sentence:'きょうしつにはたくさんのがくせいがいます。', sentence_id:'Di ruang kelas ada banyak siswa.'},
+
+  // ── Kanji Baru: Pendidikan & Sekolah ──
+  {n:305, char:'漢', on:'カン', kun:'おとこ', meaning:'Tiongkok / Karakter Han / Pria', id:'Otoko', on_id:'Kan',
+   on_ex:'漢字 (かんじ) – kanji · 漢文 (かんぶん) – teks klasik Tionghoa · 漢方 (かんぽう) – obat tradisional Tionghoa', kun_ex:'漢 (おとこ) – pria / laki-laki (kuno)',
+   sentence:'まいにちかんじをおぼえるようにしています。', sentence_id:'Saya berusaha menghafal kanji setiap hari.'},
+  {n:306, char:'文', on:'ブン・モン', kun:'ふみ', meaning:'Tulisan / Kalimat / Huruf', id:'Fumi', on_id:'Bun / Mon',
+   on_ex:'文章 (ぶんしょう) – tulisan / paragraf · 文化 (ぶんか) – budaya · 作文 (さくぶん) – karangan', kun_ex:'文 (ふみ) – surat / tulisan · 文字 (もじ) – huruf',
+   sentence:'にほんごのさくぶんをかきました。', sentence_id:'Saya menulis karangan dalam bahasa Jepang.'},
+  {n:307, char:'教', on:'キョウ', kun:'おし・おそ', meaning:'Mengajar / Pendidikan', id:'Oshi / Oso', on_id:'Kyou',
+   on_ex:'教育 (きょういく) – pendidikan · 教室 (きょうしつ) – ruang kelas · 宗教 (しゅうきょう) – agama', kun_ex:'教える (おしえる) – mengajar · 教わる (おそわる) – belajar dari orang lain',
+   sentence:'せんせいがわかりやすくにほんごをおしえてくれます。', sentence_id:'Guru mengajarkan bahasa Jepang dengan mudah dipahami.'},
+  {n:308, char:'勉', on:'ベン', kun:'つと', meaning:'Berusaha / Belajar Giat', id:'Tsuto', on_id:'Ben',
+   on_ex:'勉強 (べんきょう) – belajar · 勤勉 (きんべん) – rajin / tekun', kun_ex:'勉める (つとめる) – berusaha / tekun',
+   sentence:'まいにちさんじかんべんきょうをしています。', sentence_id:'Saya belajar tiga jam setiap hari.'},
+  {n:309, char:'英', on:'エイ', kun:'はなぶさ', meaning:'Inggris / Unggulan / Bunga', id:'Hanabusa', on_id:'Ei',
+   on_ex:'英語 (えいご) – bahasa Inggris · 英雄 (えいゆう) – pahlawan / hero · 英才 (えいさい) – bakat luar biasa', kun_ex:'英 (はなぶさ) – tangkai bunga / yang terbaik',
+   sentence:'えいごをじょうずにはなせるようになりたいです。', sentence_id:'Saya ingin bisa berbicara bahasa Inggris dengan lancar.'},
+  {n:310, char:'考', on:'コウ', kun:'かんが', meaning:'Berpikir / Mempertimbangkan', id:'Kanga', on_id:'Kou',
+   on_ex:'考察 (こうさつ) – analisis / kajian · 参考 (さんこう) – referensi · 思考 (しこう) – proses berpikir', kun_ex:'考える (かんがえる) – berpikir · 考え (かんがえ) – pikiran / ide',
+   sentence:'このもんだいについてよくかんがえてみます。', sentence_id:'Saya akan memikirkan masalah ini dengan baik.'},
+  {n:311, char:'題', on:'ダイ', kun:'だい', meaning:'Judul / Soal / Topik', id:'Dai', on_id:'Dai',
+   on_ex:'問題 (もんだい) – masalah / soal · 題名 (だいめい) – judul · 宿題 (しゅくだい) – pekerjaan rumah', kun_ex:'題 (だい) – judul / tema',
+   sentence:'このしけんのもんだいはむずかしいです。', sentence_id:'Soal ujian ini sulit.'},
+  {n:312, char:'宿', on:'シュク', kun:'やど', meaning:'Penginapan / Bermalam / PR', id:'Yado', on_id:'Shuku',
+   on_ex:'宿題 (しゅくだい) – pekerjaan rumah · 宿泊 (しゅくはく) – menginap · 下宿 (げしゅく) – kos-kosan', kun_ex:'宿 (やど) – penginapan · 宿る (やどる) – bermalam / bersemayam',
+   sentence:'しゅくだいをわすれてせんせいにしかられました。', sentence_id:'Saya dimarahi guru karena lupa mengerjakan PR.'},
+  {n:313, char:'試', on:'シ', kun:'こころ・ため', meaning:'Mencoba / Ujian', id:'Kokoro / Tame', on_id:'Shi',
+   on_ex:'試験 (しけん) – ujian · 試合 (しあい) – pertandingan · 試写 (ししゃ) – pemutaran perdana', kun_ex:'試みる (こころみる) – mencoba · 試す (ためす) – menguji',
+   sentence:'らいしゅうにほんごのしけんがあります。', sentence_id:'Minggu depan ada ujian bahasa Jepang.'},
+  {n:314, char:'合', on:'ゴウ・ガッ・カッ', kun:'あ', meaning:'Cocok / Bergabung / Bersama', id:'A', on_id:'Gou / Gas / Kas',
+   on_ex:'試合 (しあい) – pertandingan · 合格 (ごうかく) – lulus · 合計 (ごうけい) – jumlah total', kun_ex:'合う (あう) – cocok / sesuai · 合わせる (あわせる) – menyesuaikan',
+   sentence:'しけんにごうかくしてとてもうれしいです。', sentence_id:'Saya sangat senang karena lulus ujian.'},
+  {n:315, char:'答', on:'トウ', kun:'こた', meaning:'Jawaban / Menjawab', id:'Kota', on_id:'Tou',
+   on_ex:'答案 (とうあん) – lembar jawaban · 解答 (かいとう) – jawaban / solusi · 回答 (かいとう) – respons', kun_ex:'答える (こたえる) – menjawab · 答え (こたえ) – jawaban',
+   sentence:'せんせいのしつもんにこたえました。', sentence_id:'Saya menjawab pertanyaan guru.'},
+  {n:316, char:'用', on:'ヨウ', kun:'もち', meaning:'Menggunakan / Keperluan / Tugas', id:'Mochi', on_id:'You',
+   on_ex:'使用 (しよう) – penggunaan · 用意 (ようい) – persiapan · 利用 (りよう) – memanfaatkan', kun_ex:'用いる (もちいる) – menggunakan · 用 (よう) – keperluan',
+   sentence:'このどうぐはべんりによういします。', sentence_id:'Saya menyiapkan alat yang praktis ini.'},
+  {n:317, char:'意', on:'イ', kun:'こころ', meaning:'Maksud / Pikiran / Makna', id:'Kokoro', on_id:'I',
+   on_ex:'意味 (いみ) – arti / makna · 注意 (ちゅうい) – perhatian · 意見 (いけん) – pendapat', kun_ex:'意 (こころ) – hati / pikiran · 意気 (いき) – semangat',
+   sentence:'このことばのいみをしらべました。', sentence_id:'Saya mencari arti kata ini.'},
+  {n:318, char:'紙', on:'シ', kun:'かみ', meaning:'Kertas', id:'Kami', on_id:'Shi',
+   on_ex:'手紙 (てがみ) – surat · 新聞紙 (しんぶんし) – kertas koran · 紙幣 (しへい) – uang kertas', kun_ex:'紙 (かみ) – kertas · 折り紙 (おりがみ) – origami',
+   sentence:'てがみをかくためにかみをじゅんびします。', sentence_id:'Saya menyiapkan kertas untuk menulis surat.'},
+  {n:319, char:'活', on:'カツ', kun:'い', meaning:'Aktif / Hidup / Kegiatan', id:'I', on_id:'Katsu',
+   on_ex:'生活 (せいかつ) – kehidupan · 活動 (かつどう) – kegiatan / aktivitas · 活発 (かっぱつ) – aktif / bersemangat', kun_ex:'活きる (いきる) – hidup dengan penuh semangat',
+   sentence:'まいにちのせいかつのなかでにほんごをつかっています。', sentence_id:'Saya menggunakan bahasa Jepang dalam kehidupan sehari-hari.'},
+  {n:320, char:'色', on:'ショク・シキ', kun:'いろ', meaning:'Warna / Ragam', id:'Iro', on_id:'Shoku / Shiki',
+   on_ex:'色彩 (しきさい) – warna-warni · 特色 (とくしょく) – ciri khas · 景色 (けしき) – pemandangan', kun_ex:'色 (いろ) – warna · 色々 (いろいろ) – bermacam-macam',
+   sentence:'あなたのすきないろはなんですか？', sentence_id:'Apa warna favorit Anda?'},
+  {n:321, char:'形', on:'ケイ・ギョウ', kun:'かたち・かた', meaning:'Bentuk / Wujud', id:'Katachi / Kata', on_id:'Kei / Gyou',
+   on_ex:'人形 (にんぎょう) – boneka · 形式 (けいしき) – format / bentuk · 地形 (ちけい) – topografi', kun_ex:'形 (かたち) – bentuk · 形 (かた) – pola / cetakan',
+   sentence:'このはなのかたちはとてもきれいです。', sentence_id:'Bentuk bunga ini sangat indah.'},
+  {n:322, char:'品', on:'ヒン・ホン', kun:'しな', meaning:'Barang / Produk / Kualitas', id:'Shina', on_id:'Hin / Hon',
+   on_ex:'品質 (ひんしつ) – kualitas · 商品 (しょうひん) – produk dagang · 食品 (しょくひん) – produk makanan', kun_ex:'品 (しな) – barang · 品物 (しなもの) – barang / produk',
+   sentence:'このみせのしなものはひんしつがいいです。', sentence_id:'Kualitas barang di toko ini bagus.'},
+  {n:323, char:'服', on:'フク', kun:'したが', meaning:'Pakaian / Mematuhi', id:'Shitaga', on_id:'Fuku',
+   on_ex:'服装 (ふくそう) – pakaian / penampilan · 洋服 (ようふく) – pakaian Barat · 制服 (せいふく) – seragam', kun_ex:'服する (したがう) – mematuhi / mengikuti',
+   sentence:'あたらしいせいふくをきてがっこうにいきます。', sentence_id:'Saya pergi ke sekolah memakai seragam baru.'},
+  {n:324, char:'同', on:'ドウ', kun:'おな', meaning:'Sama / Bersama / Identik', id:'Ona', on_id:'Dou',
+   on_ex:'同じ (おなじ) – sama · 同意 (どうい) – persetujuan · 共同 (きょうどう) – bersama / kolaborasi', kun_ex:'同じ (おなじ) – sama · 同い年 (おないどし) – seumuran',
+   sentence:'わたしたちはおなじがっこうのともだちです。', sentence_id:'Kami adalah teman dari sekolah yang sama.'},
+];
+
+// ===== FLASHCARD STATE =====
+let fcOrder = [...Array(KANJI.length).keys()];
+let fcIndex = 0;
+let isFlipped = false;
+
+function buildGrid() {
+  const grid = document.getElementById('kanji-grid');
+  grid.innerHTML = '';
+  fcOrder.forEach((dataIdx, pos) => {
+    const k = KANJI[dataIdx];
+    const el = document.createElement('div');
+    el.className = 'kanji-thumb' + (pos === fcIndex ? ' current-thumb' : '');
+    el.id = 'thumb-' + pos;
+    el.innerHTML = `<span class="char">${k.char}</span><span class="num">${k.n}</span>`;
+    el.onclick = () => jumpCard(pos);
+    grid.appendChild(el);
+  });
+}
+
+function updateCard() {
+  const k = KANJI[fcOrder[fcIndex]];
+  document.getElementById('kanji-front').textContent = k.char;
+  document.getElementById('card-num-front').textContent = `No. ${k.n}`;
+  document.getElementById('kanji-back-char').textContent = k.char;
+  document.getElementById('kanji-back-meaning').textContent = k.meaning;
+  document.getElementById('kanji-back-id').textContent = `🇮🇩 ${k.id}`;
+  document.getElementById('kanji-back-on').textContent = k.on || '—';
+  document.getElementById('kanji-back-kun').textContent = k.kun || '—';
+  document.getElementById('kanji-back-ex').innerHTML =
+    `<span class="ex-on">音: ${k.on_ex || '—'}</span><br><span class="ex-kun">訓: ${k.kun_ex || '—'}</span>` +
+    (k.sentence ? `<div style="margin-top:12px;background:#f0ebe0;border-radius:10px;padding:12px 14px;border-left:3px solid var(--red);">
+      <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;color:var(--red);margin-bottom:6px;">― CONTOH KALIMAT</div>
+      <div style="font-family:'Noto Serif JP',serif;font-size:1.05rem;line-height:1.9;color:#1a1208;font-weight:500;">${k.sentence}</div>
+      <div style="font-size:0.8rem;color:#6a6058;margin-top:5px;font-style:italic;">${k.sentence_id}</div>
+    </div>` : '');
+  document.getElementById('fc-current').textContent = fcIndex + 1;
+  // Tunjukkan status progress di card-number
+  const kn = KANJI[fcOrder[fcIndex]].n;
+  const prog = progressData[kn] || { correct: 0, wrong: 0 };
+  const tot = prog.correct + prog.wrong;
+  const numEl = document.getElementById('card-num-front');
+  if (tot > 0) {
+    const a = Math.round(prog.correct / tot * 100);
+    numEl.style.color = a >= 70 ? '#2e7d32' : a >= 40 ? '#e65100' : '#c62828';
+    numEl.title = `Akurasi: ${a}% (${prog.correct}✓ ${prog.wrong}✗)`;
+  } else {
+    numEl.style.color = '';
+    numEl.title = 'Belum dilatih';
+  }
+  document.getElementById('fc-total').textContent = fcOrder.length;
+  document.getElementById('filter-all').textContent = `Semua (${KANJI.length})`;
+  document.getElementById('prev-btn').disabled = fcIndex === 0;
+  document.getElementById('next-btn').disabled = fcIndex === fcOrder.length - 1;
+  document.querySelectorAll('.kanji-thumb').forEach((el, i) => {
+    el.classList.toggle('current-thumb', i === fcIndex);
+  });
+  isFlipped = false;
+  document.getElementById('card-inner').classList.remove('flipped');
+
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('card-inner').classList.toggle('flipped', isFlipped);
+}
+
+function prevCard() { if (fcIndex > 0) { fcIndex--; updateCard(); } }
+function nextCard() { if (fcIndex < fcOrder.length - 1) { fcIndex++; updateCard(); } }
+function jumpCard(pos) { fcIndex = pos; updateCard(); }
+
+function shuffleCards() {
+  for (let i = fcOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [fcOrder[i], fcOrder[j]] = [fcOrder[j], fcOrder[i]];
+  }
+  fcIndex = 0;
+  buildGrid();
+  updateCard();
+}
+
+function resetCards() {
+  fcOrder = [...Array(KANJI.length).keys()];
+  fcIndex = 0;
+  buildGrid();
+  updateCard();
+}
+
+// ===== QUIZ STATE =====
+let qMode        = 'kanji-to-reading';
+let selectedIdxs = new Set(); // indices into KANJI array — diisi di buildKanjiSelector
+let quizQueue    = [];
+let srsQueue     = [];
+let quizIdx      = 0;
+let quizScore    = 0;
+let quizWrongLog = [];
+let quizTotalAsked = 0;
+let srsEnabled   = true;
+let answered     = false;
+
+// ── Kanji selector UI ──────────────────────────────────────────────────────────
+
+
+function selectByProgress(type) {
+  // Update active button
+  document.querySelectorAll('.qfilter-btn').forEach(b => b.classList.remove('active-qfilter'));
+  const btn = document.getElementById('qf-' + type);
+  if (btn) btn.classList.add('active-qfilter');
+
+  KANJI.forEach((k, i) => {
+    const tile = document.getElementById('kst-' + i);
+    if (!tile) return;
+    const p = progressData[k.n] || { correct:0, wrong:0 };
+    const total = p.correct + p.wrong;
+    const acc = total > 0 ? Math.round(p.correct / total * 100) : null;
+
+    let include = false;
+    if (type === 'all') include = true;
+    else if (type === 'belum') include = (acc === null);
+    else if (type === 'lemah') include = (acc !== null && acc < 40);
+    else if (type === 'sedang') include = (acc !== null && acc >= 40 && acc < 70);
+    else if (type === 'kuasai') include = (acc !== null && acc >= 70);
+
+    if (include) {
+      selectedIdxs.add(i);
+      if (tile) tile.classList.add('selected');
+    } else {
+      selectedIdxs.delete(i);
+      if (tile) tile.classList.remove('selected');
+    }
+  });
+  const lbl = document.getElementById('ks-count-label');
+  if (lbl) lbl.textContent = selectedIdxs.size + ' dipilih';
+}
+
+function buildGroupButtons() {
+  const wrap = document.getElementById('group-btns');
+  if (!wrap) return;
+  const groups = [];
+  for (let i = 0; i < KANJI.length; i += 20) {
+    const end = Math.min(i + 20, KANJI.length);
+    groups.push({ start: i, end: end, label: `${i+1}–${end}` });
+  }
+  const baseStyle = "font-size:0.68rem;padding:3px 8px;border:1px solid var(--border);background:var(--surface);border-radius:4px;cursor:pointer;font-family:inherit;color:var(--ink2);transition:all 0.15s;";
+  const activeStyle = "font-size:0.68rem;padding:3px 8px;border:1px solid var(--red);background:var(--red-bg);border-radius:4px;cursor:pointer;font-family:inherit;color:var(--red);transition:all 0.15s;";
+
+  wrap.innerHTML = groups.map((g, gi) =>
+    `<button id="grp-btn-${gi}" onclick="selectGroupBtn(${g.start},${g.end},${gi})" style="${baseStyle}">${g.label}</button>`
+  ).join('') +
+  `<button id="grp-btn-recent" onclick="selectRecentBtn(40)" style="${baseStyle.replace('var(--border)','var(--red)').replace('var(--surface)','var(--red-bg)').replace('var(--ink2)','var(--red)')}">40 Terakhir</button>`;
+}
+
+function resetGroupBtnStyles() {
+  const wrap = document.getElementById('group-btns');
+  if (!wrap) return;
+  wrap.querySelectorAll('button').forEach(btn => {
+    btn.style.border = '1px solid var(--border)';
+    btn.style.background = 'var(--surface)';
+    btn.style.color = 'var(--ink2)';
+  });
+}
+
+function selectGroup(start, end) {
+  selectedIdxs.clear();
+  KANJI.forEach((k, i) => {
+    const tile = document.getElementById('kst-' + i);
+    if (i >= start && i < end) {
+      selectedIdxs.add(i);
+      if (tile) tile.classList.add('selected');
+    } else {
+      if (tile) tile.classList.remove('selected');
+    }
+  });
+  // Update label jumlah dipilih
+  const lbl = document.getElementById('ks-count-label');
+  if (lbl) lbl.textContent = selectedIdxs.size + ' dipilih';
+}
+
+function selectGroupBtn(start, end, idx) {
+  resetGroupBtnStyles();
+  const btn = document.getElementById('grp-btn-' + idx);
+  if (btn) {
+    btn.style.border = '1px solid var(--red)';
+    btn.style.background = 'var(--red-bg)';
+    btn.style.color = 'var(--red)';
+  }
+  selectGroup(start, end);
+}
+
+function selectRecent(n) {
+  const start = Math.max(0, KANJI.length - n);
+  selectGroup(start, KANJI.length);
+}
+
+function selectRecentBtn(n) {
+  resetGroupBtnStyles();
+  const btn = document.getElementById('grp-btn-recent');
+  if (btn) {
+    btn.style.border = '1px solid var(--red)';
+    btn.style.background = 'var(--red-bg)';
+    btn.style.color = 'var(--red)';
+  }
+  selectRecent(n);
+}
+
+function buildKanjiSelector() {
+  loadProgress();
+  buildGroupButtons();
+  // Default: pilih semua kanji
+  selectedIdxs.clear();
+  KANJI.forEach((_, i) => selectedIdxs.add(i));
+  const wrap = document.getElementById('kanji-selector');
+  if (!wrap) return;
+  wrap.innerHTML = KANJI.map((k, i) => `
+    <div class="ks-tile selected" id="kst-${i}" onclick="toggleKanji(${i})" title="${k.meaning}">
+      <span style="font-family:'Shippori Mincho',serif;font-size:1.5rem;display:block;line-height:1.2;">${k.char}</span>
+      <span style="font-size:0.6rem;color:var(--muted);">${k.n}</span>
+    </div>`).join('');
+  updateSelCount();
+}
+
+function toggleKanji(i) {
+  if (selectedIdxs.has(i)) {
+    selectedIdxs.delete(i);
+    document.getElementById('kst-'+i).classList.remove('selected');
+  } else {
+    selectedIdxs.add(i);
+    document.getElementById('kst-'+i).classList.add('selected');
+  }
+  updateSelCount();
+}
+
+function selectAllKanji() {
+  KANJI.forEach((_, i) => {
+    selectedIdxs.add(i);
+    const el = document.getElementById('kst-'+i);
+    if (el) el.classList.add('selected');
+  });
+  updateSelCount();
+}
+
+function clearAllKanji() {
+  selectedIdxs.clear();
+  KANJI.forEach((_, i) => {
+    const el = document.getElementById('kst-'+i);
+    if (el) el.classList.remove('selected');
+  });
+  updateSelCount();
+}
+
+function updateSelCount() {
+  const lbl = document.getElementById('sel-count-label');
+  if (lbl) lbl.textContent = `${selectedIdxs.size} dipilih`;
+}
+
+function selectMode(el) {
+  document.querySelectorAll('[data-mode]').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  qMode = el.dataset.mode;
+}
+
+// ── Quiz flow ──────────────────────────────────────────────────────────────────
+
+// ── QUIZ VIEW MANAGER ─────────────────────────────────────────────────────
+let quizView = 'setup'; // 'setup' | 'active' | 'result'
+
+function showQuizView(view) {
+  quizView = view;
+  const qs = document.getElementById('quiz-setup');
+  const qa = document.getElementById('quiz-active');
+  const qr = document.getElementById('quiz-result');
+  if (qs) qs.style.display   = (view === 'setup')  ? '' : 'none';
+  if (qa) {
+    if (view === 'active') { qa.classList.add('show'); qa.style.display = ''; }
+    else { qa.classList.remove('show'); qa.style.display = 'none'; }
+  }
+  if (qr) {
+    if (view === 'result') { qr.classList.add('show'); qr.style.display = ''; }
+    else { qr.classList.remove('show'); qr.style.display = 'none'; }
+  }
+}
+
+function startQuiz() {
+if (selectedIdxs.size === 0) {
+    alert('Pilih minimal 1 kanji dulu!');
+    return;
+  }
+  srsEnabled = document.getElementById('srs-toggle').checked;
+
+  const pool = [...selectedIdxs].map(i => KANJI[i]).sort(() => Math.random() - 0.5);
+  quizQueue     = pool;
+  srsQueue      = [];
+  quizIdx       = 0;
+  quizScore     = 0;
+  quizTotalAsked = 0;
+  quizWrongLog  = [];
+
+  showQuizView('active');
+  document.getElementById('pill-srs').style.display = srsEnabled ? 'inline-block' : 'none';
+
+  showQuestion();
+}
+
+function currentQuestion() {
+  if (quizIdx < quizQueue.length) return quizQueue[quizIdx];
+  return srsQueue[quizIdx - quizQueue.length] || null;
+}
+
+function totalQuestions() {
+  return quizQueue.length + srsQueue.length;
+}
+
+// Build 4 choices from the FULL KANJI pool (not just selected),
+// so distractors are always different from the correct answer.
+function getChoicesFor(q) {
+  const others = KANJI.filter(k => k.char !== q.char).sort(() => Math.random() - 0.5).slice(0, 3);
+  return [...others, q].sort(() => Math.random() - 0.5);
+}
+
+function showQuestion() {
+  answered = false;
+  document.getElementById('next-q-btn').style.display = 'none';
+  const fp = document.getElementById('feedback-panel'); fp.classList.remove('show'); fp.style.display = 'none';
+
+  const q = currentQuestion();
+  if (!q) { showResult(); return; }
+
+  quizTotalAsked++;
+  const total    = totalQuestions();
+  const isSRS    = quizIdx >= quizQueue.length;
+  const srsBadge = isSRS ? '<span class="srs-badge">\u{1F501} Ulangan SRS</span>' : '';
+
+  document.getElementById('quiz-q-num').textContent =
+    `Soal ${quizIdx + 1} dari ${total}${isSRS ? ' \u00b7 \u{1F501}' : ''}`;
+  document.getElementById('quiz-progress').style.width = (quizIdx / total * 100) + '%';
+  updatePills();
+
+  const qDiv    = document.getElementById('quiz-question');
+  const aDiv    = document.getElementById('answer-area');
+  const choices = getChoicesFor(q);
+
+  const meaningHint = `<div style="margin-top:12px;font-size:0.82rem;color:var(--muted);">${q.meaning}</div>`;
+
+  if (qMode === 'kanji-to-reading') {
+    // SOAL: kanji besar
+    qDiv.innerHTML = `
+      <div class="quiz-prompt">Apa <span style="color:#c0392b;">On'yomi</span> dan <span style="color:#1a4a90;">Kun'yomi</span> kanji ini?</div>
+      <div class="quiz-kanji-big">${q.char}</div>
+      ${meaningHint}${srsBadge}`;
+
+    // PILIHAN: on · kun dengan romaji di bawahnya
+    aDiv.innerHTML = '<div class="choices">' + choices.map(c =>
+      `<button class="choice-btn"
+        data-val="${escHtml(c.on + '|' + c.kun)}"
+        data-correct="${escHtml(q.on + '|' + q.kun)}"
+        onclick="checkMC(this)">
+        <span style="font-size:1.15rem;font-weight:700;color:var(--red);display:block;line-height:1.4;">${c.on}</span>
+        <span style="font-size:0.65rem;color:var(--red);opacity:0.75;display:block;margin-bottom:6px;letter-spacing:0.03em;">${c.on_id}</span>
+        <span style="font-size:1.15rem;font-weight:700;color:var(--blue);display:block;line-height:1.4;">${c.kun}</span>
+        <span style="font-size:0.65rem;color:var(--blue);opacity:0.75;display:block;letter-spacing:0.03em;">${c.id}</span>
+      </button>`
+    ).join('') + '</div>';
+
+  } else if (qMode === 'reading-to-kanji') {
+    // SOAL: on → romaji on → kun → romaji kun, center, compact
+    qDiv.innerHTML = `
+      <div class="quiz-prompt">Kanji mana yang memiliki bacaan ini?</div>
+      <div style="text-align:center;margin:16px 0 10px;line-height:1;">
+        <div style="font-size:1.6rem;font-weight:700;color:var(--red);font-family:'Noto Serif JP',serif;white-space:nowrap;">${q.on}</div>
+        <div style="font-size:0.72rem;color:var(--red);font-weight:600;margin:3px 0 10px;">${q.on_id}</div>
+        <div style="font-size:1.6rem;font-weight:700;color:var(--blue);font-family:'Noto Serif JP',serif;white-space:nowrap;">${q.kun}</div>
+        <div style="font-size:0.72rem;color:var(--blue);font-weight:600;margin-top:3px;">${q.id}</div>
+      </div>
+      ${srsBadge}`;
+
+    // PILIHAN: kanji besar + arti (tanpa romaji)
+    aDiv.innerHTML = '<div class="choices">' + choices.map(c =>
+      `<button class="choice-btn"
+        data-val="${escHtml(c.char)}"
+        data-correct="${escHtml(q.char)}"
+        onclick="checkMC(this)">
+        <span style="font-size:3rem;font-family:'Shippori Mincho',serif;display:block;line-height:1.2;color:var(--ink);">${c.char}</span>
+        <span style="font-size:0.78rem;font-weight:600;color:var(--ink2);display:block;margin-top:4px;">${c.meaning}</span>
+      </button>`
+    ).join('') + '</div>';
+  }
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function checkMC(btn) {
+  if (answered) return;
+  answered = true;
+  const chosen  = btn.dataset.val;
+  const correct = btn.dataset.correct;
+  const isRight = chosen === correct;
+
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.disabled = true;
+    if (b.dataset.val === correct) b.classList.add('correct');
+  });
+  if (!isRight) btn.classList.add('wrong');
+
+  const q = currentQuestion();
+  recordAnswer(q, isRight, isRight ? null : chosen);
+}
+
+
+function updatePills() {
+  const pc = document.getElementById('pill-correct');
+  const pw = document.getElementById('pill-wrong');
+  const ps = document.getElementById('pill-srs');
+  if (pc) pc.textContent = '✓ ' + quizScore;
+  if (pw) pw.textContent = '✗ ' + quizWrongLog.length;
+  if (ps) {
+    ps.textContent = '🔁 ' + srsQueue.length;
+    ps.style.display = srsEnabled && srsQueue.length > 0 ? 'inline-block' : 'none';
+  }
+}
+
+function recordAnswer(q, isCorrect, wrongAnswer) {
+  recordProgress(q.n, isCorrect);
+  if (isCorrect) {
+    quizScore++;
+  } else {
+    quizWrongLog.push({ k: q, wrong: wrongAnswer });
+    if (srsEnabled) srsQueue.push(q);
+  }
+  updatePills();
+  showFeedback(q, isCorrect);
+  document.getElementById('next-q-btn').style.display = 'block';
+}
+
+function showFeedback(q, isCorrect) {
+  const panel  = document.getElementById('feedback-panel');
+  panel.style.display = 'block';
+  panel.classList.add('show');
+  const header = document.getElementById('feedback-header');
+  const fbK    = document.getElementById('fb-kanji');
+  const fbI    = document.getElementById('fb-info');
+
+  if (isCorrect) {
+    header.className = 'feedback-header correct-hdr';
+    header.innerHTML = '✓ 正解！ &nbsp;&nbsp; Benar!';
+  } else {
+    header.className = 'feedback-header wrong-hdr';
+    header.innerHTML = '✗ 不正解 &nbsp;&nbsp; Salah';
+  }
+
+  fbK.textContent = q.char;
+  fbI.innerHTML = `
+    <div class="fb-meaning">${q.meaning} <span style="color:var(--muted);font-size:0.75rem;font-weight:400;">· ${q.id}</span></div>
+    <div style="margin-top:4px;">
+      <span class="fb-label">音読み</span>
+      <span class="fb-pill-on">${q.on}</span>
+    </div>
+    <div style="margin-top:4px;">
+      <span class="fb-label">訓読み</span>
+      <span class="fb-pill-kun">${q.kun}</span>
+    </div>
+    ${(q.on_ex || q.kun_ex) ? '<div class="fb-ex">' +
+      (q.on_ex ? '<div style="margin-bottom:4px;"><span style="color:var(--red);font-weight:700;">音の例</span>&nbsp;' + q.on_ex + '</div>' : '') +
+      (q.kun_ex ? '<div><span style="color:var(--blue);font-weight:700;">訓の例</span>&nbsp;' + q.kun_ex + '</div>' : '') +
+      '</div>' : ''}
+  `;
+}
+
+function nextQuestion() {
+  // Sembunyikan feedback sebelum soal berikutnya
+  const panel = document.getElementById('feedback-panel');
+  if (panel) { panel.style.display = 'none'; panel.classList.remove('show'); }
+  document.getElementById('next-q-btn').style.display = 'none';
+  quizIdx++;
+  if (quizIdx >= totalQuestions()) showResult();
+  else showQuestion();
+}
+
+function showResult() {
+  showQuizView('result');
+
+  const pct = Math.round((quizScore / quizTotalAsked) * 100) || 0;
+  setTimeout(() => {
+    document.getElementById('ring-fill').style.strokeDashoffset = 377 - (377 * pct / 100);
+    document.getElementById('ring-pct').textContent = pct + '%';
+  }, 100);
+
+  const grade =
+    pct === 100 ? '◆ Sempurna! 満点！' :
+    pct >= 80   ? '◆ Sangat Bagus!' :
+    pct >= 60   ? '◇ Lumayan Bagus!' : '◇ Terus Semangat!';
+  document.getElementById('result-grade').textContent = grade;
+  document.getElementById('rs-correct').textContent   = quizScore;
+  document.getElementById('rs-wrong').textContent     = quizWrongLog.length;
+  document.getElementById('rs-total').textContent     = quizTotalAsked;
+
+  const uniqueWrong = [...new Map(quizWrongLog.map(x => [x.k.char, x])).values()];
+  const wl = document.getElementById('wrong-list');
+  if (uniqueWrong.length > 0) {
+    wl.innerHTML = `<h3>Perlu Dipelajari Lagi (${uniqueWrong.length})</h3>` +
+      uniqueWrong.map(({k, wrong}) => `
+        <div class="wrong-item">
+          <div class="w-kanji">${k.char}</div>
+          <div class="w-info">
+            <div class="w-meaning">${k.meaning} · ${k.id}</div>
+            <div class="w-reading"><span style="color:#c0392b">音:</span> ${k.on} &nbsp;<span style="color:#1a4a90">訓:</span> ${k.kun}</div>
+            ${wrong ? `<div class="w-wrong-ans">Jawabanmu: "${wrong}"</div>` : ''}
+          </div>
+        </div>`).join('');
+  } else {
+    wl.innerHTML = '<p style="text-align:center;color:var(--sage);font-size:1.1rem;padding:16px 0;">◆ Tidak ada kesalahan!</p>';
+  }
+}
+
+function endQuiz() {
+  showQuizView('setup');
+}
+
+// ===== LIST =====
+
+function filterList(type) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active-filter'));
+  document.getElementById('filter-' + type)?.classList.add('active-filter');
+  const grid = document.getElementById('list-grid');
+  if (!grid) return;
+  let filtered;
+  if (type === 'all') filtered = KANJI;
+  else if (type === 'belum') filtered = KANJI.filter(k => { const p = progressData[k.n]; return !p || (p.correct + p.wrong) === 0; });
+  else if (type === 'lemah') filtered = KANJI.filter(k => { const p = progressData[k.n]; if (!p || (p.correct+p.wrong)===0) return false; return Math.round(p.correct/(p.correct+p.wrong)*100) < 70; });
+  else if (type === 'kuasai') filtered = KANJI.filter(k => { const p = progressData[k.n]; if (!p || (p.correct+p.wrong)===0) return false; return Math.round(p.correct/(p.correct+p.wrong)*100) >= 70; });
+  // Re-render with filtered set
+  grid.innerHTML = filtered.map(k => renderKanjiCard(k)).join('');
+  attachListCardClicks();
+  // Update count
+  const allBtn = document.getElementById('filter-all');
+  if (allBtn && type === 'all') allBtn.textContent = `Semua (${KANJI.length})`;
+}
+
+function renderKanjiCard(k) {
+  const p = progressData[k.n] || { correct: 0, wrong: 0 };
+  const total = p.correct + p.wrong;
+  const acc = total > 0 ? Math.round(p.correct / total * 100) : null;
+  const dotColor = acc === null ? '' : (acc>=70?'#4caf50':acc>=40?'#c8960a':'#d94f3d');
+  const dot = acc === null ? '' : `<span style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:${dotColor};"></span>`;
+  const progText = total > 0
+    ? `<div style="margin-top:6px;font-size:0.62rem;color:${acc>=70?'var(--green)':acc>=40?'var(--gold)':'var(--red)'};font-weight:700;">${acc}% (${p.correct}✓ ${p.wrong}✗)</div>`
+    : '<div style="margin-top:6px;font-size:0.62rem;color:var(--muted);">Belum dilatih</div>';
+  return `<div class="list-card" style="position:relative;cursor:pointer;" data-n="${k.n}">
+    ${dot}
+    <div class="list-num">No. ${k.n}</div>
+    <span class="list-kanji">${k.char}</span>
+    <div class="list-meaning">${k.meaning}</div>
+    <div style="margin-top:6px;font-size:0.68rem;line-height:1.7;">
+      <span style="color:#a02820;font-weight:700;">音 ${k.on}</span><br>
+      <span style="color:#1a4a90;font-weight:700;">訓 ${k.kun}</span>
+    </div>
+    ${progText}
+  </div>`;
+}
+
+function attachListCardClicks() {
+  document.querySelectorAll('.list-card[data-n]').forEach(el => {
+    el.onclick = function() {
+      const n = parseInt(this.getAttribute('data-n'));
+      switchTab('flashcard');
+      setTimeout(() => {
+        fcIndex = KANJI.findIndex(x => x.n === n);
+        fcOrder = [...Array(KANJI.length).keys()];
+        updateCard();
+      }, 50);
+    };
+  });
+}
+
+function buildList() {
+  const grid = document.getElementById('list-grid');
+  grid.innerHTML = KANJI.map(k => renderKanjiCard(k)).join('');
+  attachListCardClicks();
+}
+
+// ===== TABS =====
+// Load progress on startup
+// loadProgress sudah dipanggil di INIT
+
+// Track state quiz saat pindah tab
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  event.target.classList.add('active');
+  if (tab === 'progress') { loadProgress(); renderProgress(); }
+  if (tab === 'list') { loadProgress(); buildList(); filterList('all'); }
+  // Saat kembali ke quiz, restore view yang terakhir
+  if (tab === 'quiz') { showQuizView(quizView); updateSRSBanner(); }
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  const fc = document.getElementById('flashcard');
+  if (!fc.classList.contains('active')) return;
+  if (e.key === 'ArrowLeft') prevCard();
+  if (e.key === 'ArrowRight') nextCard();
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+});
+
+// INIT moved to bottom
+
+
+
+function toggleMiniGrid() {
+  const wrap = document.getElementById('mini-grid-wrap');
+  const btn = document.getElementById('mini-grid-btn');
+  const visible = wrap.style.display !== 'none';
+  wrap.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '▦ Tampilkan Navigator Kanji' : '▦ Sembunyikan Navigator';
+}
+
+// ===== PROGRESS TRACKING =====
+let progressData = {};
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('kanjiProgress');
+    if (saved) progressData = JSON.parse(saved);
+  } catch(e) {
+    progressData = {};
+  }
+}
+
+function saveProgress() {
+  try {
+    localStorage.setItem('kanjiProgress', JSON.stringify(progressData));
+  } catch(e) {
+    // localStorage tidak tersedia, simpan di memori saja
+  }
+}
+
+
+
+function startSRSReview() {
+  const due = getDueCards();
+  if (due.length === 0) {
+    alert('Tidak ada kanji yang perlu direview sekarang!');
+    return;
+  }
+  // Set selectedIdxs ke kanji yang due
+  selectedIdxs.clear();
+  due.forEach(k => {
+    const i = KANJI.findIndex(x => x.n === k.n);
+    if (i >= 0) selectedIdxs.add(i);
+  });
+  startQuiz();
+}
+
+function updateSRSBanner() {
+  loadProgress();
+  const due = getDueCards();
+  const banner = document.getElementById('srs-due-banner');
+  const count = document.getElementById('srs-due-count');
+  if (!banner || !count) return;
+  if (due.length > 0) {
+    banner.style.display = 'block';
+    count.textContent = due.length + ' kanji jatuh tempo untuk direview';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// ── SRS: Ambil kanji yang sudah jatuh tempo ──────────────────────────────────
+function getDueCards() {
+  const now = Date.now();
+  return KANJI.filter(k => {
+    const p = progressData[k.n];
+    if (!p) return false; // belum pernah dipelajari
+    return now >= p.nextReview && p.interval > 0;
+  });
+}
+
+function getNewCards() {
+  return KANJI.filter(k => !progressData[k.n] || progressData[k.n].interval === 0);
+}
+
+function formatNextReview(kanjiN) {
+  const p = progressData[kanjiN];
+  if (!p || !p.nextReview) return 'Belum dipelajari';
+  const diff = p.nextReview - Date.now();
+  if (diff <= 0) return '▶ Sekarang!';
+  const days = Math.floor(diff / (24*60*60*1000));
+  const hours = Math.floor(diff / (60*60*1000));
+  if (days >= 1) return `◷ ${days} hari lagi`;
+  if (hours >= 1) return `◷ ${hours} jam lagi`;
+  return '◷ Sebentar lagi';
+}
+
+function initCard(kanjiN) {
+  if (!progressData[kanjiN]) {
+    progressData[kanjiN] = {
+      correct: 0, wrong: 0,
+      interval: 0,        // hari sampai review berikutnya
+      easeFactor: 2.5,    // faktor kemudahan (2.5 = default Anki)
+      nextReview: 0,      // timestamp next review (ms)
+      lastReview: 0,
+      streak: 0           // berapa kali benar berturut-turut
+    };
+  }
+  return progressData[kanjiN];
+}
+
+function recordProgress(kanjiN, isCorrect) {
+  const p = initCard(kanjiN);
+  const now = Date.now();
+  p.lastReview = now;
+
+  if (isCorrect) {
+    p.correct++;
+    p.streak++;
+    // Algoritme SM-2
+    if (p.streak === 1)      p.interval = 1;
+    else if (p.streak === 2) p.interval = 6;
+    else                     p.interval = Math.round(p.interval * p.easeFactor);
+    // Naikkan ease factor (maks 2.5)
+    p.easeFactor = Math.min(2.5, p.easeFactor + 0.1);
+  } else {
+    p.wrong++;
+    p.streak = 0;
+    p.interval = 1;         // ulangi besok
+    p.easeFactor = Math.max(1.3, p.easeFactor - 0.2);
+  }
+
+  p.nextReview = now + p.interval * 24 * 60 * 60 * 1000;
+  saveProgress();
+}
+
+function clearProgress() {
+  progressData = {};
+  localStorage.removeItem('kanjiProgress');
+  renderProgress();
+}
+
+function renderProgress() {
+  const summaryEl = document.getElementById('prog-summary');
+  const tableEl = document.getElementById('prog-table');
+  if (!summaryEl || !tableEl) return;
+
+  const statusEl = document.getElementById('storage-status');
+  if (statusEl) {
+    statusEl.textContent = '◈ Data tersimpan di browser';
+    statusEl.style.background = 'var(--green-bg)';
+    statusEl.style.color = 'var(--green)';
+  }
+  const total = KANJI.length;
+  let practiced = 0, mastered = 0, totalCorrect = 0, totalWrong = 0;
+  const dueNow = getDueCards().length;
+
+  KANJI.forEach(k => {
+    const p = progressData[k.n];
+    if (p && (p.correct + p.wrong) > 0) {
+      practiced++;
+      totalCorrect += p.correct;
+      totalWrong += p.wrong;
+      const acc = Math.round(p.correct / (p.correct + p.wrong) * 100);
+      if (acc >= 70) mastered++;
+    }
+  });
+
+  const accuracy = totalCorrect + totalWrong > 0
+    ? Math.round(totalCorrect / (totalCorrect + totalWrong) * 100) : 0;
+
+  // Summary cards
+  summaryEl.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:1.8rem;font-weight:700;color:var(--ink);">${practiced}</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:2px;">Kanji Dilatih</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:1.8rem;font-weight:700;color:#4caf50;">${mastered}</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:2px;">Dikuasai</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:1.8rem;font-weight:700;color:${dueNow > 0 ? '#c8960a' : '#4caf50'};">${dueNow}</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:2px;">Perlu Review</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;">
+      <div style="font-size:1.8rem;font-weight:700;color:${accuracy >= 70 ? '#4caf50' : accuracy >= 40 ? '#c8960a' : '#d94f3d'};">${accuracy}%</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:2px;">Akurasi</div>
+    </div>
+  `;
+
+
+
+  // Per-kanji table
+  const rows = KANJI.map(k => {
+    const p = progressData[k.n] || { correct: 0, wrong: 0 };
+    const total = p.correct + p.wrong;
+    const acc = total > 0 ? Math.round(p.correct / total * 100) : null;
+    const bar = total > 0 ? `<div style="width:100%;background:#e0d8cc;border-radius:4px;height:6px;margin-top:4px;">
+      <div style="width:${acc}%;background:${acc >= 70 ? '#4caf50' : acc >= 40 ? '#ff9800' : '#f44336'};height:6px;border-radius:4px;transition:width 0.4s;"></div>
+    </div>` : '<div style="font-size:0.68rem;color:var(--muted);">Belum dilatih</div>';
+    return `
+      <div style="display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="text-align:center;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:1.8rem;color:var(--red);line-height:1;">${k.char}</div>
+          <div style="font-size:0.6rem;color:var(--muted);">No.${k.n}</div>
+        </div>
+        <div>
+          <div style="font-size:0.82rem;font-weight:600;color:var(--ink);">${k.meaning}</div>
+          <div style="font-size:0.7rem;color:var(--muted);">${k.on} · ${k.kun}</div>
+          ${bar}
+        </div>
+        <div style="text-align:right;min-width:64px;">
+          ${total > 0 ? `<div style="font-size:0.75rem;color:#2e7d32;font-weight:700;">✓ ${p.correct}</div>
+          <div style="font-size:0.75rem;color:#c62828;font-weight:700;">✗ ${p.wrong}</div>
+          <div style="font-size:0.68rem;color:var(--muted);">${acc}%</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  tableEl.innerHTML = rows;
+}
+
+// INIT
+try {
+  loadProgress();
+  buildGrid();
+  updateCard();
+  buildList();
+  buildKanjiSelector();
+  showQuizView('setup'); // Pastikan quiz setup terlihat saat awal
+  updateSRSBanner();
+} catch(e) {
+  console.error('Init error:', e);
+}
+</script>
+</body>
+</html>
