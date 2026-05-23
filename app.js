@@ -61,15 +61,12 @@ const App = (function() {
     DOM.wrongList = $('wrong-list');
     DOM.listGrid = $('list-grid');
     DOM.progSummary = $('prog-summary');
-    DOM.progTable = $('prog-table');
-    DOM.storageStatus = $('storage-status');
     DOM.kanjiSelector = $('kanji-selector');
     DOM.groupBtns = $('group-btns');
     DOM.selCountLabel = $('sel-count-label');
     DOM.srsToggle = $('srs-toggle');
     DOM.srsBanner = $('srs-due-banner');
     DOM.srsDueCount = $('srs-due-count');
-    DOM.filterAll = $('filter-all');
   }
 
 
@@ -173,6 +170,8 @@ const App = (function() {
     progressData = {};
     localStorage.removeItem('kanjiProgress');
     renderProgress();
+    buildList();
+    filterList('all');
   }
 
 
@@ -230,11 +229,6 @@ const App = (function() {
     } else {
       DOM.cardNumFront.style.color = '';
       DOM.cardNumFront.title = 'Belum dilatih';
-    }
-
-    // Update filter count
-    if (DOM.filterAll) {
-      DOM.filterAll.textContent = `Semua (${KANJI.length})`;
     }
 
     // Navigation state
@@ -771,20 +765,20 @@ const App = (function() {
     
     const levelColors = { kuasai: '#4caf50', sedang: '#c8960a', lemah: '#d94f3d' };
     const levelLabels = { kuasai: 'Dikuasai', sedang: 'Sedang', lemah: 'Lemah' };
-    const dotColor = level ? levelColors[level] : '';
-    const dot = level ? `<span class="progress-dot" style="background:${dotColor};"></span>` : '';
+    
+    // Mastery CSS class for border/background color
+    const masteryClass = level ? `mastery-${level}` : 'mastery-default';
     
     let progText;
     if (total > 0) {
       const acc = Math.round(p.correct / total * 100);
       const color = level ? levelColors[level] : 'var(--muted)';
-      progText = `<div class="list-progress" style="color:${color};">${levelLabels[level] || ''} ${acc}% (${p.correct}\u2713 ${p.wrong}\u2717)</div>`;
+      progText = `<div class="list-progress" style="color:${color};">${levelLabels[level] || ''} ${acc}%</div>`;
     } else {
-      progText = '<div class="list-progress" style="color:var(--muted);">Belum dilatih</div>';
+      progText = '<div class="list-progress" style="color:var(--muted);">—</div>';
     }
 
-    return `<div class="list-card" data-n="${k.n}">
-      ${dot}
+    return `<div class="list-card ${masteryClass}" data-n="${k.n}">
       <div class="list-num">No. ${k.n}</div>
       <span class="list-kanji">${k.char}</span>
       <div class="list-meaning">${k.meaning}</div>
@@ -815,6 +809,7 @@ const App = (function() {
   function buildList() {
     DOM.listGrid.innerHTML = KANJI.map(k => renderKanjiCard(k)).join('');
     attachListCardClicks();
+    updateFilterCounts();
   }
 
   /** Filter list by progress category */
@@ -827,30 +822,48 @@ const App = (function() {
     if (type === 'all') filtered = KANJI;
     else if (type === 'belum') filtered = KANJI.filter(k => getMasteryLevel(progressData[k.n]) === null);
     else if (type === 'lemah') filtered = KANJI.filter(k => getMasteryLevel(progressData[k.n]) === 'lemah');
+    else if (type === 'sedang') filtered = KANJI.filter(k => getMasteryLevel(progressData[k.n]) === 'sedang');
     else if (type === 'kuasai') filtered = KANJI.filter(k => getMasteryLevel(progressData[k.n]) === 'kuasai');
 
     DOM.listGrid.innerHTML = filtered.map(k => renderKanjiCard(k)).join('');
     attachListCardClicks();
 
-    if (DOM.filterAll && type === 'all') {
-      DOM.filterAll.textContent = `Semua (${KANJI.length})`;
-    }
+    // Update filter counts
+    updateFilterCounts();
+  }
+
+  /** Update filter button counts */
+  function updateFilterCounts() {
+    let belum = 0, lemah = 0, sedang = 0, kuasai = 0;
+    KANJI.forEach(k => {
+      const level = getMasteryLevel(progressData[k.n]);
+      if (level === null) belum++;
+      else if (level === 'lemah') lemah++;
+      else if (level === 'sedang') sedang++;
+      else if (level === 'kuasai') kuasai++;
+    });
+
+    const fAll = $('filter-all');
+    const fBelum = $('filter-belum');
+    const fLemah = $('filter-lemah');
+    const fSedang = $('filter-sedang');
+    const fKuasai = $('filter-kuasai');
+
+    if (fAll) fAll.textContent = `Semua (${KANJI.length})`;
+    if (fBelum) fBelum.textContent = `Belum Dilatih (${belum})`;
+    if (fLemah) fLemah.textContent = `Lemah (${lemah})`;
+    if (fSedang) fSedang.textContent = `Sedang (${sedang})`;
+    if (fKuasai) fKuasai.textContent = `Dikuasai (${kuasai})`;
   }
 
 
   // ── PROGRESS VIEW ──────────────────────────────────────────────────────────
 
-  /** Render progress statistics */
+  /** Render progress summary cards (shown at top of Daftar/List view) */
   function renderProgress() {
-    if (!DOM.progSummary || !DOM.progTable) return;
+    if (!DOM.progSummary) return;
 
-    if (DOM.storageStatus) {
-      DOM.storageStatus.textContent = '\u25C8 Data tersimpan di browser';
-      DOM.storageStatus.style.background = 'var(--green-bg)';
-      DOM.storageStatus.style.color = 'var(--green)';
-    }
-
-    let practiced = 0, mastered = 0, totalCorrect = 0, totalWrong = 0;
+    let practiced = 0, mastered = 0, sedangCount = 0, lemahCount = 0, totalCorrect = 0, totalWrong = 0;
     const dueNow = getDueCards().length;
 
     KANJI.forEach(k => {
@@ -859,7 +872,10 @@ const App = (function() {
         practiced++;
         totalCorrect += p.correct;
         totalWrong += p.wrong;
-        if (getMasteryLevel(p) === 'kuasai') mastered++;
+        const level = getMasteryLevel(p);
+        if (level === 'kuasai') mastered++;
+        else if (level === 'sedang') sedangCount++;
+        else if (level === 'lemah') lemahCount++;
       }
     });
 
@@ -869,49 +885,21 @@ const App = (function() {
     // Summary cards
     DOM.progSummary.innerHTML = `
       <div class="prog-card">
-        <div class="prog-card-num">${practiced}</div>
-        <div class="prog-card-label">Kanji Dilatih</div>
+        <div class="prog-card-num">${practiced}<span style="font-size:0.8rem;color:var(--muted);">/${KANJI.length}</span></div>
+        <div class="prog-card-label">Dilatih</div>
       </div>
       <div class="prog-card">
         <div class="prog-card-num" style="color:#4caf50;">${mastered}</div>
         <div class="prog-card-label">Dikuasai</div>
       </div>
       <div class="prog-card">
-        <div class="prog-card-num" style="color:${dueNow > 0 ? '#c8960a' : '#4caf50'};">${dueNow}</div>
-        <div class="prog-card-label">Perlu Review</div>
+        <div class="prog-card-num" style="color:#c8960a;">${sedangCount}</div>
+        <div class="prog-card-label">Sedang</div>
       </div>
       <div class="prog-card">
-        <div class="prog-card-num" style="color:${accuracy >= 70 ? '#4caf50' : accuracy >= 40 ? '#c8960a' : '#d94f3d'};">${accuracy}%</div>
-        <div class="prog-card-label">Akurasi</div>
+        <div class="prog-card-num" style="color:#d94f3d;">${lemahCount}</div>
+        <div class="prog-card-label">Lemah</div>
       </div>`;
-
-    // Per-kanji table
-    DOM.progTable.innerHTML = KANJI.map(k => {
-      const p = progressData[k.n] || { correct: 0, wrong: 0 };
-      const total = p.correct + p.wrong;
-      const acc = total > 0 ? Math.round(p.correct / total * 100) : null;
-      const barHtml = total > 0
-        ? `<div class="prog-bar"><div class="prog-bar-fill" style="width:${acc}%;background:${acc >= 70 ? '#4caf50' : acc >= 40 ? '#ff9800' : '#f44336'};"></div></div>`
-        : '<div style="font-size:0.68rem;color:var(--muted);">Belum dilatih</div>';
-
-      return `<div class="prog-row">
-        <div>
-          <div class="prog-row-kanji">${k.char}</div>
-          <div class="prog-row-num">No.${k.n}</div>
-        </div>
-        <div>
-          <div class="prog-row-meaning">${k.meaning}</div>
-          <div class="prog-row-reading">${k.on} \u00b7 ${k.kun}</div>
-          ${barHtml}
-        </div>
-        <div class="prog-row-stats">
-          ${total > 0 ? `
-            <div class="prog-correct">\u2713 ${p.correct}</div>
-            <div class="prog-wrong">\u2717 ${p.wrong}</div>
-            <div class="prog-acc">${acc}%</div>` : ''}
-        </div>
-      </div>`;
-    }).join('');
   }
 
 
@@ -934,8 +922,7 @@ const App = (function() {
     });
 
     // Tab-specific initialization
-    if (tab === 'progress') { loadProgress(); renderProgress(); }
-    if (tab === 'list') { loadProgress(); buildList(); filterList('all'); }
+    if (tab === 'list') { loadProgress(); renderProgress(); buildList(); filterList('all'); }
     if (tab === 'quiz') { showQuizView(quizView); updateSRSBanner(); }
     if (tab === 'test-fc') { tfcShowView('setup'); }
   }

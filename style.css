@@ -1182,7 +1182,7 @@ header {
 /* ── DAFTAR / LIST ── */
 .list-header {
   padding: 12px 16px 0;
-  max-width: 700px;
+  max-width: 860px;
   margin: 0 auto;
 }
 
@@ -1246,6 +1246,45 @@ header {
   border-color: var(--ink) !important;
 }
 
+/* ── LIST LEGEND ── */
+.list-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.list-legend-title {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--ink2);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legend-default .legend-dot { background: var(--surface2); border: 1px solid var(--border2); }
+.legend-lemah .legend-dot { background: #d94f3d; }
+.legend-sedang .legend-dot { background: #c8960a; }
+.legend-kuasai .legend-dot { background: #4caf50; }
+
 .list-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -1255,7 +1294,7 @@ header {
 
 .list-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: 12px;
   padding: 14px 8px;
   text-align: center;
@@ -1265,8 +1304,32 @@ header {
 }
 
 .list-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Color-coded mastery borders */
+.list-card.mastery-default {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.list-card.mastery-lemah {
   border-color: var(--red);
-  background: var(--surface2);
+  background: var(--red-bg);
+  box-shadow: inset 0 0 0 1px rgba(217, 79, 61, 0.1);
+}
+
+.list-card.mastery-sedang {
+  border-color: var(--gold);
+  background: var(--gold-bg);
+  box-shadow: inset 0 0 0 1px rgba(200, 150, 10, 0.1);
+}
+
+.list-card.mastery-kuasai {
+  border-color: var(--green);
+  background: var(--green-bg);
+  box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.1);
 }
 
 .list-num {
@@ -1350,27 +1413,27 @@ header {
 
 .prog-summary {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 .prog-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 14px;
+  padding: 10px 8px;
   text-align: center;
 }
 
 .prog-card-num {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--ink);
 }
 
 .prog-card-label {
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   color: var(--muted);
   margin-top: 2px;
 }
@@ -1481,6 +1544,9 @@ header {
   .choice-btn { padding: 12px 8px; font-size: 0.88rem; }
   .main { padding: 20px 14px; }
   .card-face { padding: 28px 18px 24px; }
+  .prog-summary { grid-template-columns: repeat(2, 1fr); }
+  .list-legend { gap: 8px; padding: 8px 10px; }
+  .legend-item { font-size: 0.65rem; }
 }
 
 /* ── UTILITY CLASSES ── */
